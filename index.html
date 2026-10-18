@@ -1,0 +1,2382 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CelebrationOS - Enterprise Event & WhatsApp Guest Platform</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    html[data-theme="light"] {
+      --background: #f8fafc;
+      --card: #ffffff;
+      --card-subtle: #f1f5f9;
+      --sidebar: #ffffff;
+      --border: #e2e8f0;
+      --foreground: #0f172a;
+      --muted-foreground: #64748b;
+      --primary: #4338ca;
+      --primary-foreground: #ffffff;
+    }
+
+    html[data-theme="dark"] {
+      --background: #090d16;
+      --card: #111827;
+      --card-subtle: #1e293b;
+      --sidebar: #0b1120;
+      --border: #334155;
+      --foreground: #f8fafc;
+      --muted-foreground: #94a3b8;
+      --primary: #6366f1;
+      --primary-foreground: #ffffff;
+    }
+
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.3); border-radius: 4px; }
+    
+    .phone-shadow {
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45), 0 0 0 10px #1e293b, 0 0 0 12px #334155;
+    }
+
+    .icon-svg {
+      display: inline-block;
+      width: 1rem;
+      height: 1rem;
+      stroke-width: 2;
+      stroke: currentColor;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body class="bg-[var(--background)] text-[var(--foreground)] antialiased min-h-screen flex flex-col md:flex-row font-sans transition-colors duration-150">
+
+  <!-- ================= GLOBAL SIDEBAR ================= -->
+  <aside class="w-full md:w-64 bg-[var(--sidebar)] border-b md:border-b-0 md:border-r border-[var(--border)] p-4 flex flex-col justify-between shrink-0 shadow-xs">
+    
+    <div>
+      <!-- Brand Logo (Enterprise Monogram) -->
+      <div class="flex items-center gap-2.5 px-2 py-1 mb-5">
+        <div class="w-8 h-8 rounded-lg bg-indigo-700 text-white flex items-center justify-center font-bold text-sm tracking-tight shadow-xs">
+          C
+        </div>
+        <div>
+          <h2 class="font-bold text-sm text-[var(--foreground)] tracking-tight">CelebrationOS</h2>
+          <span class="text-[10px] text-slate-500 font-medium">Enterprise Event Suite</span>
+        </div>
+      </div>
+
+      <!-- Navigation Links -->
+      <nav class="space-y-1 text-xs font-medium mb-4">
+        <button onclick="navigateTo('global-dashboard')" id="nav-btn-global" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl font-bold bg-[var(--card-subtle)] text-indigo-600 dark:text-indigo-400 border border-[var(--border)] transition">
+          <svg class="icon-svg" viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span>Home (All Events)</span>
+        </button>
+
+        <button onclick="navigateTo('calendar-view')" id="nav-btn-calendar" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--card-subtle)] transition">
+          <svg class="icon-svg" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+          <span>Ceremony Timeline</span>
+        </button>
+
+        <button onclick="navigateTo('whatsapp-hub')" id="nav-btn-whatsapp" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--card-subtle)] transition">
+          <svg class="icon-svg" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <span>WhatsApp Cloud API</span>
+        </button>
+      </nav>
+
+      <!-- Active Event Context Pill (When inside an event) -->
+      <div id="sidebar-active-event-pill" class="hidden bg-[var(--card-subtle)] border border-indigo-500/20 rounded-xl p-3 mb-2">
+        <span class="text-[9px] uppercase font-bold text-indigo-600 dark:text-indigo-400 tracking-wider block mb-1">Currently Viewing</span>
+        <h4 id="sidebar-active-event-name" class="font-bold text-xs text-[var(--foreground)] truncate">The Royal Wedding</h4>
+        <button onclick="navigateTo('global-dashboard')" class="text-[10px] text-[var(--muted-foreground)] hover:text-indigo-600 flex items-center gap-1 mt-1.5 transition">
+          <svg class="icon-svg w-3 h-3" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+          <span>Switch Event</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Sidebar Bottom Profile & Theme -->
+    <div class="pt-4 border-t border-[var(--border)] mt-4 space-y-3">
+      <div class="flex items-center justify-between">
+        <button onclick="toggleTheme()" id="sidebar-theme-toggle" class="flex items-center gap-1.5 text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)] px-2.5 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--card)] transition">
+          <span id="theme-icon-container">
+            <svg class="icon-svg w-3.5 h-3.5" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          </span>
+          <span id="theme-text" class="text-[11px] font-medium">Dark Mode</span>
+        </button>
+        <span class="inline-flex items-center gap-1 text-[10px] text-emerald-600 font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> API Live
+        </span>
+      </div>
+
+      <div class="flex items-center gap-2.5 px-1">
+        <div class="w-7 h-7 rounded-lg bg-slate-800 text-slate-100 font-bold text-xs flex items-center justify-center">
+          EP
+        </div>
+        <div class="min-w-0">
+          <p class="text-xs font-semibold text-[var(--foreground)] truncate">Elite Planners Group</p>
+          <p class="text-[10px] text-[var(--muted-foreground)] truncate">Enterprise Admin</p>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ================= MAIN CONTENT WRAPPER ================= -->
+  <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+    
+    <!-- Top Global Header -->
+    <header class="bg-[var(--card)] border-b border-[var(--border)] px-5 py-3 flex flex-wrap items-center justify-between gap-3 shrink-0 shadow-xs">
+      <div class="flex items-center gap-2 text-xs">
+        <span class="text-[var(--muted-foreground)]">CelebrationOS</span>
+        <span class="text-[var(--muted-foreground)]">/</span>
+        <span id="topbar-breadcrumb-section" class="font-semibold text-indigo-600 dark:text-indigo-400">Upcoming Events</span>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button onclick="openCreateMainEventModal()" class="text-xs px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium transition flex items-center gap-1.5 shadow-xs">
+          <svg class="icon-svg w-3.5 h-3.5" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+          <span>Create New Event</span>
+        </button>
+        <button onclick="resetDemoData()" class="text-xs px-2.5 py-1.5 rounded-lg border border-[var(--border)] hover:bg-[var(--background)] text-[var(--muted-foreground)] flex items-center gap-1" title="Reset Demo Data">
+          <svg class="icon-svg w-3 h-3" viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+          <span>Reset</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Content Sections -->
+    <div class="p-4 md:p-6 flex-1">
+
+      <!-- ============================================================== -->
+      <!-- VIEW 1: UPCOMING EVENTS DIRECTORY                              -->
+      <!-- ============================================================== -->
+      <section id="view-global-dashboard" class="flex flex-col gap-6">
+        
+        <!-- Clean Header -->
+        <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[var(--border)]">
+          <div>
+            <h2 class="text-lg font-bold text-[var(--foreground)] tracking-tight">Upcoming Events</h2>
+            <p class="text-xs text-[var(--muted-foreground)]">Select an event below to manage invitations, sub-event ceremonies, and guest headcounts.</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            <div class="relative flex-1 sm:flex-none sm:w-60">
+              <input type="text" id="event-search-input" oninput="renderEventsDirectory()" placeholder="Search events by name..." class="w-full bg-[var(--card)] border border-[var(--border)] rounded-xl pl-8 pr-3 py-2 text-xs text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:border-indigo-500">
+              <svg class="icon-svg w-3.5 h-3.5 text-[var(--muted-foreground)] absolute left-2.5 top-2.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            </div>
+            <button onclick="toggleEventFilters()" id="btn-toggle-event-filters" class="text-xs px-3.5 py-2 rounded-xl border border-[var(--border)] bg-[var(--card)] hover:bg-[var(--background)] text-[var(--foreground)] font-medium transition flex items-center gap-1.5">
+              <svg class="icon-svg w-3.5 h-3.5" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+              <span>Filters</span>
+              <span id="event-filter-active-badge" class="hidden w-1.5 h-1.5 rounded-full bg-indigo-600"></span>
+            </button>
+            <button onclick="openCreateMainEventModal()" class="text-xs px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium transition flex items-center gap-1.5 shadow-xs">
+              <svg class="icon-svg w-3.5 h-3.5" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+              <span>Create New Event</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Event Filters: Dates & Guest Count -->
+        <div id="event-filters-panel" class="hidden flex flex-wrap items-end gap-3 p-3 bg-[var(--card)] border border-[var(--border)] rounded-xl text-xs">
+          <div class="flex flex-col gap-1">
+            <label for="event-filter-from" class="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">From Date</label>
+            <input type="date" id="event-filter-from" onchange="renderEventsDirectory()" class="bg-[var(--background)] border border-[var(--border)] rounded-lg px-2.5 py-1.5 text-xs text-[var(--foreground)] focus:outline-none focus:border-indigo-500">
+          </div>
+          <div class="flex flex-col gap-1">
+            <label for="event-filter-to" class="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">To Date</label>
+            <input type="date" id="event-filter-to" onchange="renderEventsDirectory()" class="bg-[var(--background)] border border-[var(--border)] rounded-lg px-2.5 py-1.5 text-xs text-[var(--foreground)] focus:outline-none focus:border-indigo-500">
+          </div>
+          <div class="flex flex-col gap-1">
+            <label for="event-filter-min-guests" class="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">Invited Guests</label>
+            <div class="flex items-center gap-1.5">
+              <input type="number" id="event-filter-min-guests" min="0" placeholder="Min" oninput="renderEventsDirectory()" class="w-20 bg-[var(--background)] border border-[var(--border)] rounded-lg px-2.5 py-1.5 text-xs text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:border-indigo-500">
+              <span class="text-[var(--muted-foreground)]">–</span>
+              <input type="number" id="event-filter-max-guests" min="0" placeholder="Max" oninput="renderEventsDirectory()" class="w-20 bg-[var(--background)] border border-[var(--border)] rounded-lg px-2.5 py-1.5 text-xs text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:border-indigo-500">
+            </div>
+          </div>
+          <button onclick="clearEventFilters()" class="px-3 py-1.5 rounded-lg border border-[var(--border)] hover:bg-[var(--background)] font-medium text-[var(--foreground)] transition">
+            Clear Filters
+          </button>
+          <span id="event-filter-result-count" class="ml-auto self-center text-[var(--muted-foreground)]"></span>
+        </div>
+
+        <!-- Events Grid (Rendered dynamically) -->
+        <div id="events-directory-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5"></div>
+
+      </section>
+
+      <!-- ============================================================== -->
+      <!-- VIEW 2: ACTIVE EVENT WORKSPACE                                 -->
+      <!-- ============================================================== -->
+      <section id="view-event-workspace" class="hidden flex flex-col gap-6">
+        
+        <!-- Active Event Sub-Header -->
+        <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-4 shadow-xs flex flex-wrap items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <button onclick="navigateTo('global-dashboard')" class="p-2 rounded-xl border border-[var(--border)] hover:bg-[var(--background)] text-xs font-medium flex items-center gap-1 transition">
+              <svg class="icon-svg w-3.5 h-3.5" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+              <span>All Events</span>
+            </button>
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 id="workspace-event-title" class="font-bold text-base text-[var(--foreground)]">The Royal Wedding: Rahul & Priya</h2>
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 font-semibold border border-indigo-500/20" id="workspace-event-badge">Active Workspace</span>
+              </div>
+              <p id="workspace-event-sub" class="text-xs text-[var(--muted-foreground)] mt-0.5">Jaipur Palace • Dec 12–14, 2026 • 3 Ceremonies</p>
+            </div>
+          </div>
+
+          <!-- View Mode Toggle -->
+          <div class="flex items-center gap-1 bg-[var(--background)] p-1 rounded-xl border border-[var(--border)]">
+            <button onclick="setViewMode('split')" id="btn-split" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--card)] text-[var(--foreground)] shadow-xs">
+              Split View
+            </button>
+            <button onclick="setViewMode('host')" id="btn-host" class="px-3 py-1.5 rounded-lg text-xs font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
+              Host View
+            </button>
+            <button onclick="setViewMode('phone')" id="btn-phone" class="px-3 py-1.5 rounded-lg text-xs font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
+              Phone View
+            </button>
+          </div>
+        </div>
+
+        <!-- Split Grid (Host Panel + Phone Simulator) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          
+          <!-- LEFT: Host Admin Tabs (7 cols) -->
+          <div id="host-panel" class="lg:col-span-7 flex flex-col gap-6">
+
+            <!-- 1. Event KPIs Strip -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-3.5 shadow-xs">
+                <p class="text-xs text-[var(--muted-foreground)] font-medium">Invited Quota</p>
+                <h3 id="stat-total-allocated" class="text-xl font-bold text-[var(--foreground)] mt-1">33 Heads</h3>
+                <p class="text-[10px] text-[var(--muted-foreground)] mt-0.5" id="stat-families-count">10 Families</p>
+              </div>
+              <div class="bg-[var(--card)] border border-emerald-500/20 bg-emerald-500/5 rounded-xl p-3.5 shadow-xs">
+                <p class="text-xs text-emerald-700 dark:text-emerald-400 font-medium">Confirmed Attendees</p>
+                <h3 id="stat-confirmed-heads" class="text-xl font-bold text-emerald-600 mt-1">19 Heads</h3>
+                <p class="text-[10px] text-emerald-700 dark:text-emerald-400 mt-0.5" id="stat-adult-kid-split">15 Adults, 4 Kids</p>
+              </div>
+              <div class="bg-[var(--card)] border border-amber-500/20 bg-amber-500/5 rounded-xl p-3.5 shadow-xs">
+                <p class="text-xs text-amber-700 dark:text-amber-400 font-medium">Pending Decisions</p>
+                <h3 id="stat-pending-heads" class="text-xl font-bold text-amber-600 mt-1">10 Heads</h3>
+                <p class="text-[10px] text-amber-700 dark:text-amber-400 mt-0.5" id="stat-pending-families">3 Families</p>
+              </div>
+              <div class="bg-[var(--card)] border border-indigo-500/20 bg-indigo-500/5 rounded-xl p-3.5 shadow-xs">
+                <p class="text-xs text-indigo-700 dark:text-indigo-400 font-medium">Seats Available</p>
+                <h3 id="stat-freed-seats" class="text-xl font-bold text-indigo-600 mt-1">2 Seats</h3>
+                <p class="text-[10px] text-indigo-700 dark:text-indigo-400 mt-0.5">From Declines</p>
+              </div>
+            </div>
+
+            <!-- Event Detail Tabs -->
+            <div class="flex items-center gap-1 bg-[var(--background)] p-1 rounded-xl border border-[var(--border)] overflow-x-auto" id="event-detail-tabs">
+              <button onclick="setEventDetailTab('subevents')" id="event-tab-btn-subevents" class="flex-1 whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--card)] text-[var(--foreground)] shadow-xs transition">
+                Sub-events
+              </button>
+              <button onclick="setEventDetailTab('guests')" id="event-tab-btn-guests" class="flex-1 whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition">
+                Guests
+              </button>
+              <button onclick="setEventDetailTab('savings')" id="event-tab-btn-savings" class="flex-1 whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition">
+                Savings Calculator
+              </button>
+            </div>
+
+            <!-- 2. Sub-Events Tracking & Ceremony Reminders -->
+            <div id="event-tab-subevents" class="event-tab-panel bg-[var(--card)] border border-[var(--border)] rounded-2xl p-5 shadow-xs flex flex-col gap-4">
+              <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[var(--border)]">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h3 class="font-bold text-base text-[var(--foreground)]">Sub-Events & Ceremonies Tracking</h3>
+                    <span id="sub-events-count-badge" class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 font-bold border border-indigo-500/20">3 Ceremonies</span>
+                  </div>
+                  <p class="text-xs text-[var(--muted-foreground)] mt-0.5">Track ceremony headcounts, venue timings & automated WhatsApp reminder schedules</p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button onclick="openCreateSubEventModal()" class="text-xs px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium flex items-center gap-1 shadow-xs transition">
+                    <svg class="icon-svg w-3 h-3" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                    <span>Add Sub-Event</span>
+                  </button>
+                  <button onclick="downloadAllEventsReport()" class="text-xs px-3 py-1.5 rounded-lg border border-[var(--border)] hover:bg-[var(--background)] font-medium text-[var(--foreground)] flex items-center gap-1.5 transition">
+                    <svg class="icon-svg w-3.5 h-3.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                    <span>Export Reports</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Sub-Events Grid -->
+              <div id="sub-event-report-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5"></div>
+
+              <!-- Automated Reminders & Broadcast Bar -->
+              <div class="p-3 bg-[var(--background)] border border-[var(--border)] rounded-xl flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div class="flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span class="text-[var(--muted-foreground)]">WhatsApp Cloud API: <strong class="text-[var(--foreground)]">Utility Reminders Active</strong> (~₹0.11/msg)</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button onclick="triggerBatchInvites()" id="btn-broadcast-invites" class="text-xs px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium shadow-xs transition flex items-center gap-1">
+                    <svg class="icon-svg w-3 h-3" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                    <span>Dispatch Invites</span>
+                  </button>
+                  <button onclick="triggerScheduledReminders()" class="text-xs px-3 py-1.5 rounded-lg bg-[var(--card)] hover:bg-[var(--card-subtle)] border border-[var(--border)] font-medium text-[var(--foreground)] transition flex items-center gap-1">
+                    <svg class="icon-svg w-3 h-3" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <span>Run Today's Reminders</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. Current RSVP Detail Table (Family-Wise) -->
+            <div id="event-tab-guests" class="event-tab-panel hidden bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-xs overflow-hidden flex flex-col">
+              <div class="p-4 border-b border-[var(--border)] flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h3 class="font-bold text-base text-[var(--foreground)]">Current RSVP Detail Table (Family-Wise)</h3>
+                    <span id="tab-badge-roster-count" class="px-2 py-0.5 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 rounded-full text-[10px] font-bold border border-emerald-500/20">7/10 Confirmed</span>
+                  </div>
+                  <p class="text-xs text-[var(--muted-foreground)] mt-0.5">Track allocated guest quotas vs. actual confirmed attendees per household</p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button onclick="openAddFamilyModal()" class="text-xs px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium transition flex items-center gap-1 shadow-xs">
+                    <svg class="icon-svg w-3 h-3" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                    <span>Add Family</span>
+                  </button>
+                  <button onclick="simulateCsvImport()" class="text-xs px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium transition flex items-center gap-1 shadow-xs">
+                    <svg class="icon-svg w-3 h-3" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                    <span>Import Excel/CSV</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- RSVP Quick Filters & Search Bar -->
+              <div class="px-4 py-2.5 bg-[var(--background)] border-b border-[var(--border)] flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-1.5 overflow-x-auto text-xs" id="rsvp-filter-tabs">
+                  <button onclick="setRsvpFilter('all')" id="filter-btn-all" class="px-2.5 py-1 rounded-lg font-bold bg-[var(--card)] text-indigo-600 border border-[var(--border)] shadow-xs transition">
+                    All (<span id="count-all-rsvp">10</span>)
+                  </button>
+                  <button onclick="setRsvpFilter('confirmed')" id="filter-btn-confirmed" class="px-2.5 py-1 rounded-lg font-medium text-[var(--muted-foreground)] hover:text-emerald-600 transition">
+                    Confirmed (<span id="count-confirmed-rsvp">7</span>)
+                  </button>
+                  <button onclick="setRsvpFilter('pending')" id="filter-btn-pending" class="px-2.5 py-1 rounded-lg font-medium text-[var(--muted-foreground)] hover:text-amber-600 transition">
+                    Pending (<span id="count-pending-rsvp">2</span>)
+                  </button>
+                  <button onclick="setRsvpFilter('declined')" id="filter-btn-declined" class="px-2.5 py-1 rounded-lg font-medium text-[var(--muted-foreground)] hover:text-rose-600 transition">
+                    Declined (<span id="count-declined-rsvp">1</span>)
+                  </button>
+                </div>
+
+                <div class="relative w-full sm:w-56">
+                  <input type="text" id="guest-search-input" oninput="renderTable()" placeholder="Search family, phone, notes..." class="w-full bg-[var(--card)] border border-[var(--border)] rounded-lg pl-7 pr-2.5 py-1 text-xs text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:border-indigo-500">
+                  <svg class="icon-svg w-3.5 h-3.5 text-[var(--muted-foreground)] absolute left-2 top-1.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                </div>
+              </div>
+
+              <!-- Table -->
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                  <thead class="bg-[var(--background)] text-[var(--muted-foreground)] uppercase text-[10px] tracking-wider border-b border-[var(--border)]">
+                    <tr>
+                      <th class="p-3">Family / Guest & Channel</th>
+                      <th class="p-3">WhatsApp Number</th>
+                      <th class="p-3">Invited Ceremonies</th>
+                      <th class="p-3">RSVP Status</th>
+                      <th class="p-3 text-center">Invited Quota</th>
+                      <th class="p-3 text-center">Actual Attending</th>
+                      <th class="p-3 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="guest-table-body" class="divide-y divide-[var(--border)]"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- 4. Client Commercial Value: WhatsApp vs Print Savings -->
+            <div id="event-tab-savings" class="event-tab-panel hidden bg-[var(--card)] border border-[var(--border)] rounded-2xl p-4 shadow-xs">
+              <div class="flex items-center gap-2">
+                <svg class="icon-svg w-4 h-4 text-emerald-600" viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+                <h4 class="font-bold text-xs text-[var(--foreground)]">Meta WhatsApp vs. Printed Cards Savings Calculator</h4>
+              </div>
+              <div id="pricing-calc-body" class="mt-4 pt-3 border-t border-[var(--border)] space-y-3">
+                <div class="p-3 bg-[var(--background)] rounded-xl border border-[var(--border)]">
+                  <div class="flex justify-between text-xs font-semibold mb-2">
+                    <span>Simulated Guest Volume:</span>
+                    <span id="slider-guest-val" class="text-indigo-600 font-bold">500 Households</span>
+                  </div>
+                  <input type="range" id="guest-slider" min="100" max="2000" step="100" value="500" oninput="updateCalculator(this.value)" class="w-full accent-indigo-600 cursor-pointer">
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
+                  <div class="p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+                    <span class="text-[10px] text-emerald-800 dark:text-emerald-300 font-medium block">WhatsApp Cloud API</span>
+                    <h4 id="calc-wa-cost" class="text-base font-bold text-emerald-600 mt-0.5">₹445.00</h4>
+                  </div>
+                  <div class="p-2.5 bg-rose-500/10 border border-rose-500/20 rounded-xl">
+                    <span class="text-[10px] text-rose-800 dark:text-rose-300 font-medium block">Traditional Print + Courier</span>
+                    <h4 id="calc-print-cost" class="text-base font-bold text-rose-600 mt-0.5">₹1,00,000.00</h4>
+                  </div>
+                  <div class="p-2.5 bg-indigo-500/10 border border-indigo-500/20 rounded-xl">
+                    <span class="text-[10px] text-indigo-800 dark:text-indigo-300 font-medium block">Client Net Savings</span>
+                    <h4 id="calc-savings" class="text-base font-bold text-indigo-600 mt-0.5">₹99,555.00</h4>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- RIGHT: Guest Mobile Phone Simulator (5 cols) -->
+          <div id="phone-panel" class="lg:col-span-5 flex flex-col items-center">
+            
+            <div class="w-full max-w-[340px] mb-3 flex flex-col gap-2 text-xs bg-[var(--card)] p-2 rounded-xl border border-[var(--border)]">
+              <div class="flex items-center gap-1">
+                <button onclick="setPhoneScreen('whatsapp')" id="phone-tab-wa" class="flex-1 whitespace-nowrap px-2 py-1 rounded-md border bg-[var(--background)] font-bold text-emerald-600 border-emerald-500/20">
+                  WhatsApp Invite
+                </button>
+                <button onclick="setPhoneScreen('reminder')" id="phone-tab-reminder" class="flex-1 whitespace-nowrap px-2 py-1 rounded-md border border-transparent font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
+                  Reminder
+                </button>
+                <button onclick="setPhoneScreen('rsvp')" id="phone-tab-rsvp" class="flex-1 whitespace-nowrap px-2 py-1 rounded-md border border-transparent font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
+                  RSVP Portal
+                </button>
+              </div>
+
+              <!-- Message Text Editor (WhatsApp Invite & Reminder) -->
+              <div id="phone-edit-row" class="flex items-center justify-between pt-2 border-t border-[var(--border)]">
+                <span class="text-[var(--muted-foreground)] font-medium">Guest Perspective</span>
+                <button onclick="toggleMessageEditor()" id="btn-edit-message" class="px-2.5 py-1 rounded-md border border-[var(--border)] hover:bg-[var(--background)] font-medium text-[var(--foreground)] flex items-center gap-1 transition">
+                  <svg class="icon-svg w-3 h-3" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                  <span>Edit Text</span>
+                </button>
+              </div>
+              <!-- Event-level Reminder Schedule (Reminder tab only) -->
+              <div id="reminder-schedule-row" class="hidden flex flex-wrap items-center justify-between gap-2 p-2 rounded-lg bg-amber-500/5 border border-amber-500/20">
+                <label for="input-event-reminder-days" class="flex items-center gap-1.5 text-[var(--foreground)] font-medium">
+                  <span>Send</span>
+                  <input type="number" id="input-event-reminder-days" min="0" max="60" value="3" oninput="updateEventReminderDays(this.value)" class="w-14 bg-[var(--card)] border border-[var(--border)] rounded-md px-1.5 py-0.5 text-xs text-center font-bold text-[var(--foreground)] focus:outline-none focus:border-amber-500">
+                  <span>days before event</span>
+                </label>
+                <span class="text-[10px] text-amber-700 dark:text-amber-400">Send date: <strong id="event-reminder-send-date">—</strong></span>
+              </div>
+
+              <div id="message-editor-panel" class="hidden flex flex-col gap-2">
+                <label for="message-editor-input" id="message-editor-label" class="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">Invite Message</label>
+                <textarea id="message-editor-input" rows="6" oninput="onMessageTemplateInput(this.value)" class="w-full bg-[var(--background)] border border-[var(--border)] rounded-lg px-2.5 py-2 text-xs text-[var(--foreground)] leading-relaxed focus:outline-none focus:border-indigo-500 resize-y"></textarea>
+                <div class="flex flex-wrap items-center gap-1">
+                  <span class="text-[10px] text-[var(--muted-foreground)] mr-0.5">Insert:</span>
+                  <div id="message-placeholder-chips" class="contents"></div>
+                </div>
+                <p class="text-[10px] text-[var(--muted-foreground)]">Wrap text in *asterisks* for bold, as in WhatsApp.</p>
+                <div class="flex items-center justify-between">
+                  <button onclick="resetMessageTemplate()" class="px-2.5 py-1 rounded-md border border-[var(--border)] hover:bg-[var(--background)] font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition">Reset to Default</button>
+                  <button onclick="toggleMessageEditor()" class="px-3 py-1 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white font-medium transition">Done</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Smartphone Hardware Frame -->
+            <div class="relative w-[340px] h-[640px] bg-slate-950 rounded-[42px] phone-shadow overflow-hidden flex flex-col border-[4px] border-slate-700">
+              <div class="h-6 w-full bg-slate-900 flex items-center justify-center relative z-20">
+                <div class="w-20 h-4 bg-black rounded-b-xl flex items-center justify-center">
+                  <div class="w-2.5 h-2.5 rounded-full bg-slate-800 mr-2"></div>
+                  <div class="w-1.5 h-1.5 rounded-full bg-blue-900"></div>
+                </div>
+              </div>
+
+              <!-- Screen Inside Phone -->
+              <div class="flex-1 bg-slate-900 text-slate-100 overflow-y-auto relative flex flex-col">
+                
+                <!-- WHATSAPP CHAT -->
+                <div id="screen-whatsapp" class="flex-1 flex flex-col">
+                  <div class="bg-[#075E54] text-white px-3 py-2 flex items-center gap-2.5 shadow-md">
+                    <div class="w-8 h-8 rounded-full bg-slate-700 text-white flex items-center justify-center font-bold text-xs">
+                      RP
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-1">
+                        <h5 class="text-xs font-semibold truncate leading-tight" id="phone-header-event-title">Rahul & Priya Wedding</h5>
+                        <!-- Meta Verified Badge SVG -->
+                        <svg class="w-3 h-3 text-emerald-400 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="m9 12 2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                      </div>
+                      <p class="text-[10px] text-emerald-200 leading-tight">Official WhatsApp Business</p>
+                    </div>
+                  </div>
+
+                  <div class="flex-1 p-3 flex flex-col justify-end space-y-3 bg-[#0d1418] bg-opacity-95">
+                    <div class="max-w-[92%] bg-[#1f2c34] text-slate-100 rounded-2xl rounded-tl-xs p-2.5 shadow-sm border border-slate-700/50">
+                      
+                      <!-- Invitation Header Card -->
+                      <div class="rounded-xl overflow-hidden mb-2 bg-gradient-to-r from-slate-800 to-indigo-950 p-3 text-center text-white border border-slate-700">
+                        <span class="text-[9px] uppercase tracking-widest text-indigo-300 font-semibold block">Official Invitation</span>
+                        <h4 class="font-serif text-base font-bold my-1 text-white" id="phone-banner-event-title">Rahul & Priya</h4>
+                        <p class="text-[10px] text-slate-300">Jaipur Palace • Dec 12–14</p>
+                      </div>
+
+                      <p id="wa-invite-message" class="text-[11px] leading-relaxed mb-2 text-slate-200 break-words"></p>
+
+                      <div class="bg-black/40 p-2.5 rounded-lg text-[10px] text-slate-300 mb-2 space-y-1.5 border border-slate-800">
+                        <div class="flex justify-between items-center text-indigo-300 pb-1 border-b border-slate-700/50 font-semibold">
+                          <span>Invited Family Quota:</span>
+                          <span id="wa-allocated-seats" class="bg-indigo-500/20 text-indigo-200 px-1.5 py-0.5 rounded text-[10px]">Up to 4 Seats</span>
+                        </div>
+                        <div>
+                          <span class="text-slate-400 block mb-0.5 font-medium">Ceremonies:</span>
+                          <div id="wa-subevents-list" class="space-y-0.5 text-slate-200 pl-1"></div>
+                        </div>
+                      </div>
+
+                      <button onclick="setPhoneScreen('rsvp')" class="w-full bg-[#00a884] hover:bg-[#008f6f] text-slate-950 font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition">
+                        <span>Click to Confirm Attendees</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="p-2 bg-[#1f2c34] flex items-center gap-2">
+                    <div class="flex-1 bg-[#2a3942] rounded-full px-3 py-1.5 text-[11px] text-slate-400">Type a message...</div>
+                    <div class="w-7 h-7 rounded-full bg-[#00a884] flex items-center justify-center text-slate-950 text-xs">
+                      <svg class="icon-svg w-3.5 h-3.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- WHATSAPP REMINDER CHAT -->
+                <div id="screen-reminder" class="hidden flex-1 flex flex-col">
+                  <div class="bg-[#075E54] text-white px-3 py-2 flex items-center gap-2.5 shadow-md">
+                    <div class="w-8 h-8 rounded-full bg-slate-700 text-white flex items-center justify-center font-bold text-xs">
+                      RP
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-1">
+                        <h5 class="text-xs font-semibold truncate leading-tight" id="phone-reminder-header-event-title">Rahul & Priya Wedding</h5>
+                        <svg class="w-3 h-3 text-emerald-400 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="m9 12 2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                      </div>
+                      <p class="text-[10px] text-emerald-200 leading-tight">Official WhatsApp Business</p>
+                    </div>
+                  </div>
+
+                  <div class="flex-1 p-3 flex flex-col justify-end space-y-3 bg-[#0d1418] bg-opacity-95">
+                    <div class="self-center px-2.5 py-0.5 rounded-md bg-[#1f2c34] text-[10px] text-slate-400 border border-slate-700/50">
+                      Scheduled: <span id="phone-reminder-send-date">—</span>
+                    </div>
+                    <div class="max-w-[92%] bg-[#1f2c34] text-slate-100 rounded-2xl rounded-tl-xs p-2.5 shadow-sm border border-slate-700/50">
+
+                      <!-- Reminder Header Card -->
+                      <div class="rounded-xl overflow-hidden mb-2 bg-gradient-to-r from-slate-800 to-amber-950 p-3 text-center text-white border border-slate-700">
+                        <span class="text-[9px] uppercase tracking-widest text-amber-300 font-semibold block">Ceremony Reminder</span>
+                        <h4 class="font-serif text-base font-bold my-1 text-white" id="reminder-card-ceremony">Haldi Ceremony</h4>
+                        <p class="text-[10px] text-slate-300" id="reminder-card-when">Sat, 12 Dec 2026 • 10:30 AM</p>
+                      </div>
+
+                      <p id="wa-reminder-message" class="text-[11px] leading-relaxed mb-2 text-slate-200 break-words"></p>
+
+                      <button onclick="setPhoneScreen('rsvp')" class="w-full bg-[#00a884] hover:bg-[#008f6f] text-slate-950 font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition">
+                        <span>View / Update RSVP</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="p-2 bg-[#1f2c34] flex items-center gap-2">
+                    <div class="flex-1 bg-[#2a3942] rounded-full px-3 py-1.5 text-[11px] text-slate-400">Type a message...</div>
+                    <div class="w-7 h-7 rounded-full bg-[#00a884] flex items-center justify-center text-slate-950 text-xs">
+                      <svg class="icon-svg w-3.5 h-3.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- RSVP WEB PORTAL -->
+                <div id="screen-rsvp" class="hidden flex-1 flex flex-col bg-slate-950 text-slate-100 overflow-y-auto p-4">
+                  <div class="bg-slate-900 border border-slate-800 rounded-xl px-2.5 py-1 mb-3 flex items-center justify-between text-[10px] text-slate-400">
+                    <span class="flex items-center gap-1">celebrationos.com/rsvp/<span id="rsvp-token-slug">sharma-7f9a</span></span>
+                    <button onclick="setPhoneScreen('whatsapp')" class="text-indigo-400 font-bold">✕ Close</button>
+                  </div>
+
+                  <div class="text-center mb-3">
+                    <span class="text-[10px] text-indigo-400 font-semibold tracking-wider uppercase">Ceremony Attendance</span>
+                    <h3 id="rsvp-guest-header" class="text-base font-bold text-white mt-0.5">Sharma Family</h3>
+                    <div class="inline-block mt-1 px-2.5 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-[10px] text-slate-300 font-medium">
+                      Invited Quota: <strong id="rsvp-quota-display">Up to 4 Members</strong>
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-2 mb-3">
+                    <button type="button" onclick="selectRsvpDecision('attending')" id="btn-choice-attending" class="py-2 rounded-xl border border-emerald-500 bg-emerald-500/20 text-emerald-400 text-xs font-bold flex items-center justify-center gap-1">
+                      <span>Attending</span>
+                    </button>
+                    <button type="button" onclick="selectRsvpDecision('declined')" id="btn-choice-declined" class="py-2 rounded-xl border border-slate-800 bg-slate-900 text-slate-400 text-xs font-medium flex items-center justify-center gap-1">
+                      <span>Regret Cannot</span>
+                    </button>
+                  </div>
+
+                  <div id="rsvp-attending-fields" class="space-y-3">
+                    <div class="bg-slate-900 p-3 rounded-xl border border-slate-800">
+                      <label class="text-[11px] font-bold text-slate-300 block mb-2">Ceremonies You Will Attend:</label>
+                      <div id="rsvp-subevents-checkboxes" class="space-y-2 text-xs"></div>
+                    </div>
+
+                    <div class="bg-slate-900 p-3 rounded-xl border border-slate-800">
+                      <div class="flex justify-between items-center mb-2 pb-1.5 border-b border-slate-800">
+                        <span class="text-xs font-bold text-white">Actual Attendees:</span>
+                        <span id="rsvp-total-attending-badge" class="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">3 Members</span>
+                      </div>
+
+                      <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs font-medium text-slate-300">Adults:</span>
+                        <div class="flex items-center gap-2">
+                          <button onclick="adjustHeadcount('adults', -1)" class="w-6 h-6 rounded-md bg-slate-800 text-white font-bold flex items-center justify-center">-</button>
+                          <span id="rsvp-adults-val" class="text-xs font-bold w-4 text-center">2</span>
+                          <button onclick="adjustHeadcount('adults', 1)" class="w-6 h-6 rounded-md bg-slate-800 text-white font-bold flex items-center justify-center">+</button>
+                        </div>
+                      </div>
+
+                      <div class="flex justify-between items-center">
+                        <span class="text-xs font-medium text-slate-300">Children (Under 10):</span>
+                        <div class="flex items-center gap-2">
+                          <button onclick="adjustHeadcount('kids', -1)" class="w-6 h-6 rounded-md bg-slate-800 text-white font-bold flex items-center justify-center">-</button>
+                          <span id="rsvp-kids-val" class="text-xs font-bold w-4 text-center">1</span>
+                          <button onclick="adjustHeadcount('kids', 1)" class="w-6 h-6 rounded-md bg-slate-800 text-white font-bold flex items-center justify-center">+</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="mt-4 pb-2">
+                    <button onclick="submitGuestRsvp()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs shadow-lg active:scale-95 transition">
+                      Confirm Ceremony Attendance
+                    </button>
+                  </div>
+
+                  <div id="rsvp-success-banner" class="hidden mt-2 p-3 bg-emerald-500/20 border border-emerald-500 rounded-xl text-center">
+                    <p class="text-xs font-bold text-emerald-400">Attendance Confirmed</p>
+                    <p class="text-[10px] text-emerald-200 mt-0.5">Host dashboard has been updated in real time.</p>
+                  </div>
+                </div>
+
+              </div>
+
+              <div class="h-4 w-full bg-slate-950 flex items-center justify-center">
+                <div class="w-28 h-1 bg-slate-600 rounded-full"></div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ============================================================== -->
+      <!-- VIEW 3: CEREMONY TIMELINE CALENDAR                             -->
+      <!-- ============================================================== -->
+      <section id="view-calendar-view" class="hidden flex flex-col gap-6">
+        <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-5 shadow-xs">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="font-bold text-sm text-[var(--foreground)]">Ceremony Schedule & Reminder Pipeline</h3>
+              <p class="text-xs text-[var(--muted-foreground)]">Upcoming ceremony dates and automated WhatsApp reminder triggers across all events</p>
+            </div>
+            <button onclick="navigateTo('global-dashboard')" class="text-xs px-3 py-1.5 rounded-xl border border-[var(--border)] hover:bg-[var(--background)] font-medium">
+              Return to Events
+            </button>
+          </div>
+
+          <div class="space-y-3" id="calendar-timeline-container"></div>
+        </div>
+      </section>
+
+      <!-- ============================================================== -->
+      <!-- VIEW 4: WHATSAPP CLOUD API HUB                                -->
+      <!-- ============================================================== -->
+      <section id="view-whatsapp-hub" class="hidden flex flex-col gap-6">
+        <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-5 shadow-xs">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="font-bold text-sm text-[var(--foreground)]">Meta WhatsApp Cloud API Management</h3>
+              <p class="text-xs text-[var(--muted-foreground)]">Official Meta Business Manager connectivity, conversation quotas & template statuses</p>
+            </div>
+            <span class="text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 font-bold border border-emerald-500/20">Meta Cloud API Connected</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
+            <div class="p-4 bg-[var(--background)] rounded-xl border border-[var(--border)]">
+              <span class="text-xs text-[var(--muted-foreground)] block">Monthly Free Service Quota:</span>
+              <h4 class="text-xl font-bold text-emerald-600 mt-1">1,000 / 1,000 Free</h4>
+              <p class="text-[10px] text-[var(--muted-foreground)] mt-0.5">Resets on 1st of every month</p>
+            </div>
+            <div class="p-4 bg-[var(--background)] rounded-xl border border-[var(--border)]">
+              <span class="text-xs text-[var(--muted-foreground)] block">Meta Verification Status:</span>
+              <h4 class="text-xl font-bold text-indigo-600 mt-1">Tier 2 Verified</h4>
+              <p class="text-[10px] text-[var(--muted-foreground)] mt-0.5">10,000 unique guests / day limit</p>
+            </div>
+            <div class="p-4 bg-[var(--background)] rounded-xl border border-[var(--border)]">
+              <span class="text-xs text-[var(--muted-foreground)] block">Current Meta Wallet Balance:</span>
+              <h4 class="text-xl font-bold text-[var(--foreground)] mt-1">₹4,250.00</h4>
+              <p class="text-[10px] text-[var(--muted-foreground)] mt-0.5">Auto-reload enabled on Visa</p>
+            </div>
+          </div>
+
+          <div class="p-4 bg-indigo-500/5 border border-indigo-500/20 rounded-xl text-xs text-indigo-700 dark:text-indigo-300">
+            <strong>Agency Client Selling Point:</strong> With CelebrationOS, your client connects their direct Meta Business Manager. They pay Meta's wholesale rates with 0% middleman markup, while you charge your agency software fee.
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- ================= MODAL: CREATE BRAND NEW EVENT ================= -->
+  <div id="modal-create-event" class="hidden fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+    <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl w-full max-w-md p-5 shadow-2xl">
+      <div class="flex items-center justify-between pb-3 border-b border-[var(--border)] mb-4">
+        <div>
+          <h3 class="font-bold text-base text-[var(--foreground)]">Create New Event</h3>
+          <p class="text-xs text-[var(--muted-foreground)]">Add a wedding, anniversary, or private celebration to your directory</p>
+        </div>
+        <button onclick="closeCreateMainEventModal()" class="text-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)]">✕</button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-medium mb-1 text-[var(--muted-foreground)]">Event Title / Couple Names:</label>
+          <input id="input-new-event-title" type="text" placeholder="e.g. Sangeet & Wedding: Arjun & Meera" class="w-full bg-[var(--background)] border border-[var(--border)] rounded-xl p-2.5 text-xs text-[var(--foreground)] focus:outline-none focus:border-indigo-500">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-medium mb-1 text-[var(--muted-foreground)]">Event Type:</label>
+            <select id="select-new-event-type" class="w-full bg-[var(--background)] border border-[var(--border)] rounded-xl p-2.5 text-xs text-[var(--foreground)]">
+              <option value="Wedding">Wedding Celebration</option>
+              <option value="Anniversary">Anniversary Gala</option>
+              <option value="Destination">Destination Celebration</option>
+              <option value="Corporate">Corporate Summit</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-medium mb-1 text-[var(--muted-foreground)]">Expected Households:</label>
+            <input id="input-new-event-families" type="number" value="25" class="w-full bg-[var(--background)] border border-[var(--border)] rounded-xl p-2.5 text-xs text-[var(--foreground)]">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-medium mb-1 text-[var(--muted-foreground)]">Date Range:</label>
+          <input id="input-new-event-dates" type="text" placeholder="e.g. March 10–12, 2027" class="w-full bg-[var(--background)] border border-[var(--border)] rounded-xl p-2.5 text-xs text-[var(--foreground)]">
+        </div>
+
+        <div>
+          <label class="block font-medium mb-1 text-[var(--muted-foreground)]">City & Venue Location:</label>
+          <input id="input-new-event-city" type="text" placeholder="e.g. Umaid Bhawan Palace, Jodhpur" class="w-full bg-[var(--background)] border border-[var(--border)] rounded-xl p-2.5 text-xs text-[var(--foreground)]">
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 mt-5 pt-3 border-t border-[var(--border)]">
+        <button onclick="closeCreateMainEventModal()" class="px-4 py-2 rounded-xl border border-[var(--border)] text-xs font-medium hover:bg-[var(--background)]">Cancel</button>
+        <button onclick="saveNewMainEvent()" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm">Save & Open Workspace</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: ADD / EDIT FAMILY & COUNTS ================= -->
+  <div id="modal-family" class="hidden fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+    <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl w-full max-w-lg p-5 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-3 border-b border-[var(--border)] mb-4">
+        <div>
+          <h3 id="modal-family-title" class="font-bold text-base text-[var(--foreground)]">Add New Family</h3>
+          <p class="text-xs text-[var(--muted-foreground)]">Manage guest allocations, ceremonies, and actual attending counts</p>
+        </div>
+        <button onclick="closeFamilyModal()" class="text-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)]">✕</button>
+      </div>
+
+      <div class="space-y-3.5 text-xs">
+        <div>
+          <label class="block font-medium mb-1 text-[var(--muted-foreground)]">Family / Primary Guest Name:</label>
+          <input id="input-fam-name" type="text" placeholder="e.g. Verma Family / Dr. Rajesh Verma" class="w-full bg-[var(--background)] border border-[var(--border)] rounded-xl p-2.5 text-xs text-[var(--foreground)] focus:outline-none focus:border-indigo-500">
+        </div>
+
+        <div>
+          <label class="block font-medium mb-1 text-[var(--muted-foreground)]">WhatsApp Mobile Number (with Country Code):</label>
+          <input id="input-fam-phone" type="text" placeholder="+91 98111 22334" class="w-full bg-[var(--background)] border border-[var(--border)] rounded-xl p-2.5 text-xs text-[var(--foreground)] font-mono focus:outline-none focus:border-indigo-500">
+        </div>
+
+        <div class="p-3 bg-[var(--card-subtle)] rounded-xl border border-[var(--border)]">
+          <div class="flex items-center justify-between">
+            <div>
+              <label class="block font-bold text-[var(--foreground)]">Invited Headcount Quota:</label>
+              <span class="text-[11px] text-[var(--muted-foreground)]">Max capacity allocated to this family</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <input id="input-fam-quota" type="number" min="1" max="20" value="4" class="w-16 bg-[var(--background)] border border-[var(--border)] rounded-lg p-2 text-center text-xs font-bold text-[var(--foreground)] focus:outline-none">
+              <span class="text-xs text-[var(--muted-foreground)] font-medium">Seats</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-3 bg-[var(--card-subtle)] rounded-xl border border-[var(--border)]">
+          <label class="block font-bold text-[var(--foreground)] mb-1.5">Invited Ceremonies & Sub-Events:</label>
+          <div id="modal-fam-subevents-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1"></div>
+        </div>
+
+        <div class="p-3 bg-[var(--card-subtle)] rounded-xl border border-[var(--border)] space-y-2.5">
+          <div class="flex items-center justify-between">
+            <label class="block font-bold text-[var(--foreground)]">RSVP Status:</label>
+            <select id="select-fam-status" onchange="toggleModalActualAttendeesFields(this.value)" class="bg-[var(--background)] border border-[var(--border)] rounded-lg px-2.5 py-1 text-xs font-semibold text-[var(--foreground)] focus:outline-none">
+              <option value="Pending">Pending (Awaiting Reply)</option>
+              <option value="Confirmed">Confirmed (Attending)</option>
+              <option value="Declined">Declined (Cannot Attend)</option>
+            </select>
+          </div>
+
+          <div id="modal-fam-actual-fields" class="pt-2 border-t border-[var(--border)] space-y-2">
+            <span class="text-[11px] text-emerald-600 font-semibold block">Actual Attending Breakdown:</span>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-[11px] text-[var(--muted-foreground)] mb-1">Adults Attending:</label>
+                <input id="input-fam-adults" type="number" min="0" max="20" value="2" class="w-full bg-[var(--background)] border border-[var(--border)] rounded-lg p-2 text-xs font-bold text-[var(--foreground)]">
+              </div>
+              <div>
+                <label class="block text-[11px] text-[var(--muted-foreground)] mb-1">Kids Attending:</label>
+                <input id="input-fam-kids" type="number" min="0" max="10" value="0" class="w-full bg-[var(--background)] border border-[var(--border)] rounded-lg p-2 text-xs font-bold text-[var(--foreground)]">
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="flex justify-end gap-2 mt-5 pt-3 border-t border-[var(--border)]">
+        <button onclick="closeFamilyModal()" class="px-4 py-2 rounded-xl border border-[var(--border)] text-xs font-medium hover:bg-[var(--background)]">Cancel</button>
+        <button onclick="saveFamily()" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm">Save Family Details</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: ADD / CREATE SUB-EVENT ================= -->
+  <div id="modal-subevent" class="hidden fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+    <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl w-full max-w-md p-5 shadow-2xl">
+      <div class="flex items-center justify-between pb-3 border-b border-[var(--border)] mb-4">
+        <h3 class="font-bold text-base text-[var(--foreground)]">Create New Sub-Event</h3>
+        <button onclick="closeCreateSubEventModal()" class="text-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)]">✕</button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-medium mb-1 text-[var(--muted-foreground)]">Sub-Event Name (e.g. Mehendi, Sangeet, Cocktail):</label>
+          <input id="input-se-name" type="text" placeholder="Mehendi & High Tea" class="w-full bg-[var(--background)] border border-[var(--border)] rounded-xl p-2.5 text-xs text-[var(--foreground)] focus:outline-none focus:border-indigo-500">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-medium mb-1 text-[var(--muted-foreground)]">Event Date:</label>
+            <input id="input-se-date" type="date" value="2026-12-12" class="w-full bg-[var(--background)] border border-[var(--border)] rounded-xl p-2 text-xs text-[var(--foreground)] focus:outline-none">
+          </div>
+          <div>
+            <label class="block font-medium mb-1 text-[var(--muted-foreground)]">Start Time:</label>
+            <input id="input-se-time" type="text" value="04:00 PM" class="w-full bg-[var(--background)] border border-[var(--border)] rounded-xl p-2 text-xs text-[var(--foreground)] focus:outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-medium mb-1 text-[var(--muted-foreground)]">Venue / Hall Location:</label>
+          <input id="input-se-venue" type="text" placeholder="Rooftop Terrace / Poolside Garden" class="w-full bg-[var(--background)] border border-[var(--border)] rounded-xl p-2.5 text-xs text-[var(--foreground)] focus:outline-none">
+        </div>
+
+        <div class="p-3 bg-[var(--background)] rounded-xl border border-[var(--border)]">
+          <label class="block font-bold text-indigo-600 dark:text-indigo-400 mb-1">Send WhatsApp Reminder (Days Before Event):</label>
+          <div class="flex items-center gap-3">
+            <input id="input-se-reminder-days" type="number" min="0" max="30" value="2" oninput="calculateModalReminderDate()" class="w-20 bg-[var(--card)] border border-[var(--border)] rounded-lg p-2 text-xs text-center font-bold text-[var(--foreground)]">
+            <span class="text-xs text-[var(--muted-foreground)]">Days prior to event</span>
+          </div>
+          <div class="mt-2 text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
+            <span>Calculated Send Date:</span>
+            <span id="modal-calculated-date" class="font-bold underline">Dec 10, 2026 (at 10:00 AM)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 mt-5 pt-3 border-t border-[var(--border)]">
+        <button onclick="closeCreateSubEventModal()" class="px-4 py-2 rounded-xl border border-[var(--border)] text-xs font-medium hover:bg-[var(--background)]">Cancel</button>
+        <button onclick="saveNewSubEvent()" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm">Save Sub-Event</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= JAVASCRIPT ENGINE ================= -->
+  <script>
+    function initTheme() {
+      const savedTheme = localStorage.getItem("celebrationos_theme") || "light";
+      applyTheme(savedTheme);
+    }
+
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute("data-theme") || "light";
+      const newTheme = currentTheme === "light" ? "dark" : "light";
+      applyTheme(newTheme);
+      localStorage.setItem("celebrationos_theme", newTheme);
+    }
+
+    function applyTheme(theme) {
+      document.documentElement.setAttribute("data-theme", theme);
+      const icon = document.getElementById("theme-icon-container");
+      const text = document.getElementById("theme-text");
+      if (theme === "light") {
+        icon.innerHTML = `<svg class="icon-svg w-3.5 h-3.5" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>`;
+        text.innerText = "Dark Mode";
+      } else {
+        icon.innerHTML = `<svg class="icon-svg w-3.5 h-3.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>`;
+        text.innerText = "Light Mode";
+      }
+    }
+
+    // MULTI-EVENTS DATABASE & RSVP DATA STORE
+    let eventsList = [
+      {
+        id: "evt-1",
+        title: "The Royal Wedding: Rahul & Priya",
+        type: "Wedding Celebration",
+        dates: "Dec 12–14, 2026",
+        city: "Jaipur Palace, Rajasthan",
+        status: "Active (In 55 Days)",
+        statusBadge: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
+        cardAccent: "border-l-4 border-l-indigo-600"
+      },
+      {
+        id: "evt-2",
+        title: "Silver Jubilee: Dr. & Mrs. Gupta",
+        type: "Anniversary Gala",
+        dates: "Jan 05, 2027",
+        city: "Taj Lake Palace, Udaipur",
+        status: "Upcoming (In 79 Days)",
+        statusBadge: "bg-indigo-500/10 text-indigo-700 border-indigo-500/20",
+        cardAccent: "border-l-4 border-l-slate-700"
+      },
+      {
+        id: "evt-3",
+        title: "Destination Wedding: Vikram & Neha",
+        type: "Destination Wedding",
+        dates: "Feb 18–20, 2027",
+        city: "Grand Hyatt, Goa",
+        status: "Planning Phase",
+        statusBadge: "bg-amber-500/10 text-amber-700 border-amber-500/20",
+        cardAccent: "border-l-4 border-l-teal-600"
+      }
+    ];
+
+    const eventsDataStore = {
+      "evt-1": {
+        subEvents: [
+          { id: 1, name: "Haldi Ceremony", date: "2026-12-12", time: "10:30 AM", venue: "Poolside Lawns, Jaipur Palace", daysBefore: 1, scheduledDate: "2026-12-11" },
+          { id: 2, name: "Sangeet Night", date: "2026-12-13", time: "07:30 PM", venue: "Grand Mughal Ballroom", daysBefore: 2, scheduledDate: "2026-12-11" },
+          { id: 3, name: "Wedding & Reception", date: "2026-12-14", time: "06:00 PM", venue: "Royal Palace Courtyard", daysBefore: 1, scheduledDate: "2026-12-13" }
+        ],
+        guests: [
+          { id: 1, name: "Sharma Family", phone: "+91 98201 12345", invitedSubEvents: ["Haldi Ceremony", "Sangeet Night", "Wedding & Reception"], confirmedSubEvents: ["Haldi Ceremony", "Sangeet Night", "Wedding & Reception"], invitedQuota: 4, status: "Confirmed", adults: 2, kids: 1, waStatus: "Read", rsvpSource: "WhatsApp Web Portal", rsvpTime: "Oct 15, 4:15 PM" },
+          { id: 2, name: "Kapoor Family", phone: "+91 98110 54321", invitedSubEvents: ["Sangeet Night", "Wedding & Reception"], confirmedSubEvents: ["Sangeet Night", "Wedding & Reception"], invitedQuota: 3, status: "Confirmed", adults: 2, kids: 0, waStatus: "Read", rsvpSource: "WhatsApp Web Portal", rsvpTime: "Oct 16, 11:30 AM" },
+          { id: 3, name: "Rajesh Verma", phone: "+91 97170 99887", invitedSubEvents: ["Haldi Ceremony", "Wedding & Reception"], confirmedSubEvents: ["Haldi Ceremony", "Wedding & Reception"], invitedQuota: 2, status: "Confirmed", adults: 2, kids: 0, waStatus: "Delivered", rsvpSource: "Host Admin Entry", rsvpTime: "Oct 16, 6:00 PM" },
+          { id: 4, name: "Dr. Ananya Sen", phone: "+91 99302 44556", invitedSubEvents: ["Sangeet Night", "Wedding & Reception"], confirmedSubEvents: [], invitedQuota: 2, status: "Pending", adults: 0, kids: 0, waStatus: "Delivered", rsvpSource: "Invite Sent (Awaiting)", rsvpTime: "-" },
+          { id: 5, name: "Mehta Household", phone: "+91 98450 11223", invitedSubEvents: ["Haldi Ceremony", "Sangeet Night", "Wedding & Reception"], confirmedSubEvents: ["Wedding & Reception"], invitedQuota: 5, status: "Confirmed", adults: 3, kids: 2, waStatus: "Sent", rsvpSource: "WhatsApp Web Portal", rsvpTime: "Oct 17, 9:20 AM" },
+          { id: 6, name: "Vikram Malhotra", phone: "+91 98990 77665", invitedSubEvents: ["Wedding & Reception"], confirmedSubEvents: [], invitedQuota: 2, status: "Pending", adults: 0, kids: 0, waStatus: "Delivered", rsvpSource: "Invite Sent (Awaiting)", rsvpTime: "-" },
+          { id: 7, name: "Singhania Family", phone: "+91 98711 33445", invitedSubEvents: ["Haldi Ceremony", "Sangeet Night", "Wedding & Reception"], confirmedSubEvents: [], invitedQuota: 4, status: "Pending", adults: 0, kids: 0, waStatus: "Sent", rsvpSource: "Invite Sent (Awaiting)", rsvpTime: "-" },
+          { id: 8, name: "Rohan & Sneha", phone: "+91 98102 99001", invitedSubEvents: ["Sangeet Night", "Wedding & Reception"], confirmedSubEvents: [], invitedQuota: 2, status: "Declined", adults: 0, kids: 0, waStatus: "Read", rsvpSource: "Declined via Portal", rsvpTime: "Oct 16, 2:10 PM", note: "Traveling abroad for conference" },
+          { id: 9, name: "Gupta Associates", phone: "+91 98119 00112", invitedSubEvents: ["Wedding & Reception"], confirmedSubEvents: ["Wedding & Reception"], invitedQuota: 3, status: "Confirmed", adults: 2, kids: 0, waStatus: "Read", rsvpSource: "WhatsApp Web Portal", rsvpTime: "Oct 17, 3:45 PM" },
+          { id: 10, name: "Rawat Family", phone: "+91 99100 22334", invitedSubEvents: ["Haldi Ceremony", "Sangeet Night", "Wedding & Reception"], confirmedSubEvents: ["Haldi Ceremony", "Wedding & Reception"], invitedQuota: 4, status: "Confirmed", adults: 2, kids: 1, waStatus: "Read", rsvpSource: "WhatsApp Web Portal", rsvpTime: "Oct 18, 10:15 AM" }
+        ]
+      },
+      "evt-2": {
+        subEvents: [
+          { id: 101, name: "Welcome High Tea", date: "2027-01-05", time: "04:00 PM", venue: "Lakeside Verandah, Taj Udaipur", daysBefore: 2, scheduledDate: "2027-01-03" },
+          { id: 102, name: "Silver Jubilee Gala Dinner", date: "2027-01-05", time: "07:30 PM", venue: "Grand Mewar Ballroom", daysBefore: 1, scheduledDate: "2027-01-04" }
+        ],
+        guests: [
+          { id: 201, name: "Dr. K.K. Bansal & Family", phone: "+91 98100 11223", invitedSubEvents: ["Welcome High Tea", "Silver Jubilee Gala Dinner"], confirmedSubEvents: ["Welcome High Tea", "Silver Jubilee Gala Dinner"], invitedQuota: 4, status: "Confirmed", adults: 3, kids: 1, waStatus: "Read", rsvpSource: "WhatsApp Web Portal", rsvpTime: "Oct 12, 10:00 AM" },
+          { id: 202, name: "Prof. Arun Mathur", phone: "+91 98200 44556", invitedSubEvents: ["Silver Jubilee Gala Dinner"], confirmedSubEvents: ["Silver Jubilee Gala Dinner"], invitedQuota: 2, status: "Confirmed", adults: 2, kids: 0, waStatus: "Read", rsvpSource: "WhatsApp Web Portal", rsvpTime: "Oct 13, 1:15 PM" },
+          { id: 203, name: "Oberoi Household", phone: "+91 98300 77889", invitedSubEvents: ["Welcome High Tea", "Silver Jubilee Gala Dinner"], confirmedSubEvents: ["Welcome High Tea", "Silver Jubilee Gala Dinner"], invitedQuota: 5, status: "Confirmed", adults: 4, kids: 1, waStatus: "Delivered", rsvpSource: "Host Admin Entry", rsvpTime: "Oct 14, 5:30 PM" },
+          { id: 204, name: "Justice P.N. Rao", phone: "+91 98400 99001", invitedSubEvents: ["Silver Jubilee Gala Dinner"], confirmedSubEvents: ["Silver Jubilee Gala Dinner"], invitedQuota: 3, status: "Confirmed", adults: 2, kids: 0, waStatus: "Read", rsvpSource: "WhatsApp Web Portal", rsvpTime: "Oct 14, 8:20 PM" },
+          { id: 205, name: "Dr. Meenakshi Sundaram", phone: "+91 98500 22334", invitedSubEvents: ["Welcome High Tea", "Silver Jubilee Gala Dinner"], confirmedSubEvents: [], invitedQuota: 2, status: "Pending", adults: 0, kids: 0, waStatus: "Delivered", rsvpSource: "Invite Sent (Awaiting)", rsvpTime: "-" },
+          { id: 206, name: "Alok & Sunita Saxena", phone: "+91 98600 55667", invitedSubEvents: ["Welcome High Tea", "Silver Jubilee Gala Dinner"], confirmedSubEvents: ["Welcome High Tea", "Silver Jubilee Gala Dinner"], invitedQuota: 4, status: "Confirmed", adults: 2, kids: 2, waStatus: "Read", rsvpSource: "WhatsApp Web Portal", rsvpTime: "Oct 15, 11:45 AM" },
+          { id: 207, name: "Col. R.S. Rathore", phone: "+91 98700 88990", invitedSubEvents: ["Silver Jubilee Gala Dinner"], confirmedSubEvents: ["Silver Jubilee Gala Dinner"], invitedQuota: 2, status: "Confirmed", adults: 2, kids: 0, waStatus: "Read", rsvpSource: "WhatsApp Web Portal", rsvpTime: "Oct 15, 4:10 PM" },
+          { id: 208, name: "Deepak Tandon", phone: "+91 98800 33445", invitedSubEvents: ["Silver Jubilee Gala Dinner"], confirmedSubEvents: [], invitedQuota: 2, status: "Declined", adults: 0, kids: 0, waStatus: "Read", rsvpSource: "Declined via Portal", rsvpTime: "Oct 16, 9:00 AM", note: "Medical conference conflict" },
+          { id: 209, name: "Verma Colleagues", phone: "+91 98900 66778", invitedSubEvents: ["Silver Jubilee Gala Dinner"], confirmedSubEvents: [], invitedQuota: 4, status: "Pending", adults: 0, kids: 0, waStatus: "Sent", rsvpSource: "Invite Sent (Awaiting)", rsvpTime: "-" }
+        ]
+      },
+      "evt-3": {
+        subEvents: [
+          { id: 201, name: "Sunset Welcome Sundowner", date: "2027-02-18", time: "05:00 PM", venue: "Private Beach Cabana, Goa", daysBefore: 3, scheduledDate: "2027-02-15" },
+          { id: 202, name: "Beach Mehendi & Brunch", date: "2027-02-19", time: "11:00 AM", venue: "Palm Grove Lawn", daysBefore: 2, scheduledDate: "2027-02-17" },
+          { id: 203, name: "Seaside Vows & Reception", date: "2027-02-20", time: "06:30 PM", venue: "Oceanfront Promenade", daysBefore: 1, scheduledDate: "2027-02-19" }
+        ],
+        guests: [
+          { id: 301, name: "Vikram's College Crew", phone: "+91 99111 22334", invitedSubEvents: ["Sunset Welcome Sundowner", "Beach Mehendi & Brunch", "Seaside Vows & Reception"], confirmedSubEvents: ["Sunset Welcome Sundowner", "Beach Mehendi & Brunch", "Seaside Vows & Reception"], invitedQuota: 6, status: "Confirmed", adults: 5, kids: 0, waStatus: "Read", rsvpSource: "WhatsApp Web Portal", rsvpTime: "Oct 10, 8:40 PM" },
+          { id: 302, name: "Neha's Cousins Clan", phone: "+91 99222 33445", invitedSubEvents: ["Beach Mehendi & Brunch", "Seaside Vows & Reception"], confirmedSubEvents: ["Beach Mehendi & Brunch", "Seaside Vows & Reception"], invitedQuota: 5, status: "Confirmed", adults: 3, kids: 2, waStatus: "Read", rsvpSource: "WhatsApp Web Portal", rsvpTime: "Oct 11, 2:15 PM" },
+          { id: 303, name: "Adv. Siddharth Roy", phone: "+91 99333 44556", invitedSubEvents: ["Sunset Welcome Sundowner", "Seaside Vows & Reception"], confirmedSubEvents: ["Sunset Welcome Sundowner", "Seaside Vows & Reception"], invitedQuota: 2, status: "Confirmed", adults: 2, kids: 0, waStatus: "Delivered", rsvpSource: "Host Admin Entry", rsvpTime: "Oct 12, 11:00 AM" },
+          { id: 304, name: "Tarun & Priya Joshi", phone: "+91 99444 55667", invitedSubEvents: ["Sunset Welcome Sundowner", "Beach Mehendi & Brunch", "Seaside Vows & Reception"], confirmedSubEvents: ["Sunset Welcome Sundowner", "Beach Mehendi & Brunch", "Seaside Vows & Reception"], invitedQuota: 3, status: "Confirmed", adults: 2, kids: 1, waStatus: "Read", rsvpSource: "WhatsApp Web Portal", rsvpTime: "Oct 13, 6:50 PM" },
+          { id: 305, name: "London Relatives Group", phone: "+44 7911 123456", invitedSubEvents: ["Sunset Welcome Sundowner", "Seaside Vows & Reception"], confirmedSubEvents: [], invitedQuota: 5, status: "Pending", adults: 0, kids: 0, waStatus: "Delivered", rsvpSource: "Invite Sent (Awaiting)", rsvpTime: "-" },
+          { id: 306, name: "Uncle Ramesh & Family", phone: "+91 99555 66778", invitedSubEvents: ["Beach Mehendi & Brunch", "Seaside Vows & Reception"], confirmedSubEvents: ["Beach Mehendi & Brunch", "Seaside Vows & Reception"], invitedQuota: 4, status: "Confirmed", adults: 3, kids: 1, waStatus: "Read", rsvpSource: "WhatsApp Web Portal", rsvpTime: "Oct 14, 1:25 PM" },
+          { id: 307, name: "Rohit & Simran", phone: "+91 99666 77889", invitedSubEvents: ["Seaside Vows & Reception"], confirmedSubEvents: [], invitedQuota: 2, status: "Declined", adults: 0, kids: 0, waStatus: "Read", rsvpSource: "Declined via Portal", rsvpTime: "Oct 15, 3:30 PM", note: "Flight booking conflict" },
+          { id: 308, name: "Delhi Friends Circle", phone: "+91 99777 88990", invitedSubEvents: ["Sunset Welcome Sundowner", "Beach Mehendi & Brunch", "Seaside Vows & Reception"], confirmedSubEvents: [], invitedQuota: 4, status: "Pending", adults: 0, kids: 0, waStatus: "Sent", rsvpSource: "Invite Sent (Awaiting)", rsvpTime: "-" }
+        ]
+      }
+    };
+
+    let activeEventId = "evt-1";
+    let subEvents = [];
+    let guests = [];
+    let activeFilter = 'all';
+    let rsvpStatusFilter = 'all';
+    let currentSimulatedGuest = null;
+    let guestDecision = 'attending';
+    let editingGuestId = null;
+
+    function syncActiveEventData(eventId = activeEventId) {
+      activeEventId = eventId;
+      if (!eventsDataStore[eventId]) {
+        eventsDataStore[eventId] = {
+          subEvents: [
+            { id: 1, name: "Main Ceremony", date: "2027-03-15", time: "06:00 PM", venue: "Palace Banquet Hall", daysBefore: 2, scheduledDate: "2027-03-13" },
+            { id: 2, name: "Gala Dinner", date: "2027-03-15", time: "08:30 PM", venue: "Lakeside Pavilion", daysBefore: 1, scheduledDate: "2027-03-14" }
+          ],
+          guests: [
+            { id: 1, name: "Verma Family", phone: "+91 98111 00011", invitedSubEvents: ["Main Ceremony", "Gala Dinner"], confirmedSubEvents: ["Main Ceremony", "Gala Dinner"], invitedQuota: 4, status: "Confirmed", adults: 2, kids: 1, waStatus: "Read", rsvpSource: "WhatsApp Web Portal", rsvpTime: "Just now" },
+            { id: 2, name: "Dr. K. Anand", phone: "+91 98222 00022", invitedSubEvents: ["Gala Dinner"], confirmedSubEvents: ["Gala Dinner"], invitedQuota: 2, status: "Confirmed", adults: 2, kids: 0, waStatus: "Read", rsvpSource: "WhatsApp Web Portal", rsvpTime: "Just now" },
+            { id: 3, name: "Khanna Household", phone: "+91 98333 00033", invitedSubEvents: ["Main Ceremony", "Gala Dinner"], confirmedSubEvents: [], invitedQuota: 4, status: "Pending", adults: 0, kids: 0, waStatus: "Delivered", rsvpSource: "Invite Sent (Awaiting)", rsvpTime: "-" }
+          ]
+        };
+      }
+
+      subEvents = eventsDataStore[eventId].subEvents;
+      guests = eventsDataStore[eventId].guests;
+      if (guests.length > 0) {
+        currentSimulatedGuest = guests[0];
+      }
+    }
+
+    function navigateTo(viewId) {
+      ['global-dashboard', 'event-workspace', 'calendar-view', 'whatsapp-hub'].forEach(v => {
+        const el = document.getElementById(`view-${v}`);
+        if (el) el.classList.add('hidden');
+      });
+
+      const target = document.getElementById(`view-${viewId}`);
+      if (target) target.classList.remove('hidden');
+
+      ['global', 'calendar', 'whatsapp'].forEach(n => {
+        const btn = document.getElementById(`nav-btn-${n}`);
+        if (btn) {
+          if (`${n}-dashboard` === viewId || `${n}-view` === viewId || `${n}-hub` === viewId) {
+            btn.className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-xl font-bold bg-[var(--card-subtle)] text-indigo-600 dark:text-indigo-400 border border-[var(--border)] transition";
+          } else {
+            btn.className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--card-subtle)] transition";
+          }
+        }
+      });
+
+      const breadcrumb = document.getElementById("topbar-breadcrumb-section");
+      const sidePill = document.getElementById("sidebar-active-event-pill");
+
+      if (viewId === 'global-dashboard') {
+        if (breadcrumb) breadcrumb.innerText = "Upcoming Events";
+        if (sidePill) sidePill.classList.add("hidden");
+      } else if (viewId === 'event-workspace') {
+        const evt = eventsList.find(e => e.id === activeEventId);
+        if (breadcrumb) breadcrumb.innerText = evt ? evt.title : "Active Event Workspace";
+        if (sidePill) {
+          sidePill.classList.remove("hidden");
+          const nameEl = document.getElementById("sidebar-active-event-name");
+          if (nameEl && evt) nameEl.innerText = evt.title;
+        }
+      } else if (viewId === 'calendar-view') {
+        if (breadcrumb) breadcrumb.innerText = "Ceremony Timeline";
+        if (sidePill) sidePill.classList.add("hidden");
+      } else if (viewId === 'whatsapp-hub') {
+        if (breadcrumb) breadcrumb.innerText = "WhatsApp Cloud API";
+        if (sidePill) sidePill.classList.add("hidden");
+      }
+    }
+
+    function navigateToRsvp() {
+      navigateTo('event-workspace');
+    }
+
+    function setRsvpFilter(status) {
+      rsvpStatusFilter = status;
+      ['all', 'confirmed', 'pending', 'declined'].forEach(s => {
+        const btn = document.getElementById(`filter-btn-${s}`);
+        if (btn) {
+          if (s === status.toLowerCase()) {
+            btn.className = "px-2.5 py-1 rounded-lg font-bold bg-[var(--card)] text-indigo-600 border border-[var(--border)] shadow-xs transition";
+          } else {
+            btn.className = "px-2.5 py-1 rounded-lg font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition";
+          }
+        }
+      });
+      renderTable();
+    }
+
+    function toggleEventFilters() {
+      const panel = document.getElementById("event-filters-panel");
+      const btn = document.getElementById("btn-toggle-event-filters");
+      const isHidden = panel.classList.toggle("hidden");
+      btn.classList.toggle("border-indigo-500", !isHidden);
+      btn.classList.toggle("text-indigo-600", !isHidden);
+    }
+
+    function clearEventFilters() {
+      ["event-search-input", "event-filter-from", "event-filter-to", "event-filter-min-guests", "event-filter-max-guests"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = "";
+      });
+      renderEventsDirectory();
+    }
+
+    // Render Events Directory
+    function renderEventsDirectory() {
+      const container = document.getElementById("events-directory-grid");
+      if (!container) return;
+      container.innerHTML = "";
+
+      const searchInput = document.getElementById("event-search-input");
+      const query = searchInput ? searchInput.value.trim().toLowerCase() : "";
+      const fromDate = document.getElementById("event-filter-from")?.value || "";
+      const toDate = document.getElementById("event-filter-to")?.value || "";
+      const minGuestsRaw = document.getElementById("event-filter-min-guests")?.value || "";
+      const maxGuestsRaw = document.getElementById("event-filter-max-guests")?.value || "";
+      const minGuests = minGuestsRaw === "" ? null : Number(minGuestsRaw);
+      const maxGuests = maxGuestsRaw === "" ? null : Number(maxGuestsRaw);
+      const hasFilters = query || fromDate || toDate || minGuests !== null || maxGuests !== null;
+
+      const filteredEvents = eventsList.filter(evt => {
+        if (!evt.title.toLowerCase().includes(query)) return false;
+
+        const store = eventsDataStore[evt.id] || { guests: [], subEvents: [] };
+
+        // Date range: event's span (earliest → latest sub-event date) must overlap the selected range
+        if (fromDate || toDate) {
+          const seDates = store.subEvents.map(se => se.date).filter(Boolean).sort();
+          if (seDates.length === 0) return false;
+          const evtStart = seDates[0];
+          const evtEnd = seDates[seDates.length - 1];
+          if (fromDate && evtEnd < fromDate) return false;
+          if (toDate && evtStart > toDate) return false;
+        }
+
+        // Guest count: total invited heads across all families
+        const invitedHeads = store.guests.reduce((sum, g) => sum + g.invitedQuota, 0);
+        if (minGuests !== null && invitedHeads < minGuests) return false;
+        if (maxGuests !== null && invitedHeads > maxGuests) return false;
+
+        return true;
+      });
+
+      const activeBadge = document.getElementById("event-filter-active-badge");
+      if (activeBadge) {
+        activeBadge.classList.toggle("hidden", !(fromDate || toDate || minGuests !== null || maxGuests !== null));
+      }
+
+      const resultCount = document.getElementById("event-filter-result-count");
+      if (resultCount) {
+        resultCount.textContent = hasFilters ? `Showing ${filteredEvents.length} of ${eventsList.length} events` : "";
+      }
+
+      if (filteredEvents.length === 0 && hasFilters) {
+        container.innerHTML = `<div class="col-span-full p-8 text-center text-xs text-[var(--muted-foreground)] bg-[var(--card)] border border-dashed border-[var(--border)] rounded-2xl">No events match the current search and filters.</div>`;
+        return;
+      }
+
+      filteredEvents.forEach(evt => {
+        const store = eventsDataStore[evt.id] || { guests: [], subEvents: [] };
+        const gList = store.guests;
+        const totalQuota = gList.reduce((sum, g) => sum + g.invitedQuota, 0);
+        const confirmedGuests = gList.filter(g => g.status === 'Confirmed');
+        const confirmedHeads = confirmedGuests.reduce((sum, g) => sum + g.adults + g.kids, 0);
+        const confirmedAdults = confirmedGuests.reduce((sum, g) => sum + g.adults, 0);
+        const confirmedKids = confirmedGuests.reduce((sum, g) => sum + g.kids, 0);
+        const pendingGuests = gList.filter(g => g.status === 'Pending');
+        const pendingQuota = pendingGuests.reduce((sum, g) => sum + g.invitedQuota, 0);
+        const declinedGuests = gList.filter(g => g.status === 'Declined');
+        const freedSeats = declinedGuests.reduce((sum, g) => sum + g.invitedQuota, 0);
+        const familiesCount = gList.length;
+        const subEventsCount = store.subEvents.length;
+        const attendancePct = totalQuota > 0 ? Math.round((confirmedHeads / totalQuota) * 100) : 0;
+
+        // Upcoming Reminder info
+        let nextReminderHtml = "";
+        if (store.subEvents && store.subEvents.length > 0) {
+          const sortedSubEvents = [...store.subEvents].sort((a, b) => new Date(a.scheduledDate) - new Date(b.scheduledDate));
+          const firstReminder = sortedSubEvents[0];
+          nextReminderHtml = `
+            <div class="p-2.5 bg-[var(--background)] rounded-xl border border-[var(--border)] mb-3 text-xs">
+              <div class="flex items-center justify-between text-[11px] mb-1">
+                <span class="font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
+                  <svg class="icon-svg w-3 h-3 text-indigo-600" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  Next Scheduled Reminder
+                </span>
+                <span class="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-semibold border border-emerald-500/20">Automated</span>
+              </div>
+              <div class="text-[11px] font-medium text-[var(--foreground)]">
+                <strong>${firstReminder.scheduledDate}</strong> (${firstReminder.daysBefore}d prior to ${firstReminder.name})
+              </div>
+              <div class="text-[10px] text-[var(--muted-foreground)] mt-0.5">
+                ${subEventsCount} ceremony reminders active in WhatsApp Cloud API pipeline
+              </div>
+            </div>
+          `;
+        } else {
+          nextReminderHtml = `
+            <div class="p-2.5 bg-[var(--background)] rounded-xl border border-[var(--border)] mb-3 text-xs text-[var(--muted-foreground)]">
+              No ceremony reminders configured yet.
+            </div>
+          `;
+        }
+
+        const card = document.createElement("div");
+        card.className = `bg-[var(--card)] border border-[var(--border)] hover:border-indigo-500/60 ${evt.cardAccent} rounded-2xl p-5 shadow-xs hover:shadow-md transition cursor-pointer flex flex-col justify-between group`;
+        card.onclick = () => selectAndOpenEventWorkspace(evt.id);
+
+        card.innerHTML = `
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">${evt.type}</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full font-semibold border ${evt.statusBadge}">${evt.status}</span>
+            </div>
+
+            <h4 class="font-bold text-base text-[var(--foreground)] group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition tracking-tight">${evt.title}</h4>
+            <div class="flex items-center gap-1.5 text-xs text-[var(--muted-foreground)] mt-1 mb-3.5">
+              <svg class="icon-svg w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span class="truncate">${evt.city}</span>
+              <span>•</span>
+              <span class="shrink-0 font-medium">${evt.dates}</span>
+            </div>
+
+            <!-- Total Invitees & RSVP Breakdown -->
+            <div class="grid grid-cols-2 gap-2 text-xs mb-3">
+              <div class="bg-[var(--background)] p-2.5 rounded-xl border border-[var(--border)]">
+                <span class="text-[10px] text-[var(--muted-foreground)] block">Total Invited Quota</span>
+                <span class="text-sm font-bold text-[var(--foreground)]">${totalQuota} Heads</span>
+                <span class="text-[10px] text-[var(--muted-foreground)] block">${familiesCount} Families</span>
+              </div>
+              <div class="bg-emerald-500/5 p-2.5 rounded-xl border border-emerald-500/20">
+                <span class="text-[10px] text-emerald-700 dark:text-emerald-400 block font-medium">Actual Confirmed</span>
+                <span class="text-sm font-bold text-emerald-600">${confirmedHeads} Heads</span>
+                <span class="text-[10px] text-emerald-700 dark:text-emerald-400 block font-semibold">${confirmedAdults} Adults, ${confirmedKids} Kids</span>
+              </div>
+            </div>
+
+            <!-- RSVP Status Summary Pills -->
+            <div class="flex items-center justify-between text-[11px] mb-3 px-1">
+              <span class="text-amber-700 dark:text-amber-400 font-medium">Pending: <strong>${pendingQuota} heads</strong></span>
+              <span class="text-indigo-700 dark:text-indigo-400 font-medium">Freed/Declined: <strong>${freedSeats} seats</strong></span>
+              <span class="text-[var(--muted-foreground)] font-semibold">${attendancePct}%</span>
+            </div>
+
+            <!-- Attendance Progress Bar -->
+            <div class="w-full bg-[var(--background)] border border-[var(--border)] h-2 rounded-full overflow-hidden mb-3.5">
+              <div class="bg-emerald-500 h-2 rounded-full transition-all duration-300" style="width: ${attendancePct}%"></div>
+            </div>
+
+            <!-- Automated Reminder Info -->
+            ${nextReminderHtml}
+
+            <!-- Ceremonies & API Status -->
+            <div class="flex items-center justify-between text-[11px] pt-2 border-t border-[var(--border)] text-[var(--muted-foreground)]">
+              <span>Tracking: <strong class="text-[var(--foreground)]">${subEventsCount} Sub-Events</strong></span>
+              <span class="inline-flex items-center gap-1 text-emerald-600 font-semibold">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> WhatsApp Live
+              </span>
+            </div>
+          </div>
+
+          <div class="pt-3.5 mt-2">
+            <button onclick="event.stopPropagation(); selectAndOpenEventWorkspace('${evt.id}')" class="w-full py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition flex items-center justify-center gap-1.5 shadow-xs">
+              <span>Open Ceremonies & Guest RSVPs</span>
+              <svg class="icon-svg w-3.5 h-3.5" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    function selectAndOpenEventWorkspace(eventId) {
+      activeEventId = eventId;
+      syncActiveEventData(eventId);
+      const evt = eventsList.find(e => e.id === eventId);
+
+      if (evt) {
+        document.getElementById("workspace-event-title").innerText = evt.title;
+        document.getElementById("workspace-event-sub").innerText = `${evt.city} • ${evt.dates} • ${subEvents.length} Ceremonies Active`;
+        document.getElementById("phone-header-event-title").innerText = evt.title;
+        document.getElementById("phone-banner-event-title").innerText = evt.title;
+        document.getElementById("phone-reminder-header-event-title").innerText = evt.title;
+      }
+      syncMessageEditor();
+
+      renderTable();
+      updateMetrics();
+      renderSubEventReports();
+      if (guests.length > 0) {
+        loadGuestToPhone(guests[0]);
+      }
+      navigateTo('event-workspace');
+    }
+
+    function switchActiveEvent(eventId) {
+      selectAndOpenEventWorkspace(eventId);
+    }
+
+    function renderCalendarTimeline() {
+      const container = document.getElementById("calendar-timeline-container");
+      if (!container) return;
+      container.innerHTML = "";
+
+      let timelineItems = [];
+      eventsList.forEach(evt => {
+        const store = eventsDataStore[evt.id];
+        const eventReminder = getEventReminderSchedule(evt.id);
+        if (eventReminder) {
+          timelineItems.push({
+            sortDate: new Date(eventReminder.sendDate),
+            displayDate: eventReminder.sendDate,
+            time: "10:00 AM",
+            event: evt.title,
+            action: `WhatsApp Event Reminder (${eventReminder.daysBefore}d before event)`,
+            isReminder: true
+          });
+        }
+        if (store && store.subEvents) {
+          store.subEvents.forEach(se => {
+            timelineItems.push({
+              sortDate: new Date(se.scheduledDate),
+              displayDate: se.scheduledDate,
+              time: "10:00 AM",
+              event: evt.title,
+              action: `WhatsApp Automated Reminder (${se.daysBefore}d before ${se.name})`,
+              isReminder: true
+            });
+            timelineItems.push({
+              sortDate: new Date(se.date),
+              displayDate: se.date,
+              time: se.time,
+              event: evt.title,
+              action: `${se.name} (${se.venue})`,
+              isReminder: false
+            });
+          });
+        }
+      });
+
+      timelineItems.sort((a, b) => a.sortDate - b.sortDate);
+
+      timelineItems.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "flex items-start gap-3 p-3 bg-[var(--background)] border border-[var(--border)] rounded-xl text-xs";
+        div.innerHTML = `
+          <div class="px-2.5 py-1 rounded-lg ${item.isReminder ? 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300' : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'} font-bold shrink-0">
+            ${item.displayDate}
+          </div>
+          <div class="flex-1">
+            <span class="text-[10px] text-[var(--muted-foreground)]">${item.time} • ${item.event}</span>
+            <p class="font-bold text-[var(--foreground)] mt-0.5">${item.action}</p>
+          </div>
+          <span class="text-[10px] px-2 py-0.5 rounded-full border border-[var(--border)] bg-[var(--card)] text-[var(--muted-foreground)] font-medium">${item.isReminder ? 'Automated Trigger' : 'Ceremony'}</span>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function openCreateMainEventModal() {
+      document.getElementById("modal-create-event").classList.remove("hidden");
+    }
+
+    function closeCreateMainEventModal() {
+      document.getElementById("modal-create-event").classList.add("hidden");
+    }
+
+    function saveNewMainEvent() {
+      const title = document.getElementById("input-new-event-title").value.trim();
+      const type = document.getElementById("select-new-event-type").value;
+      const dates = document.getElementById("input-new-event-dates").value.trim() || "Spring 2027";
+      const city = document.getElementById("input-new-event-city").value.trim() || "Jaipur / Udaipur";
+
+      if (!title) {
+        alert("Please enter an Event Title!");
+        return;
+      }
+
+      const newId = `evt-${eventsList.length + 1}`;
+      const newEvt = {
+        id: newId,
+        title: title,
+        type: type,
+        dates: dates,
+        city: city,
+        status: "Planning Phase",
+        statusBadge: "bg-indigo-500/10 text-indigo-700 border-indigo-500/20",
+        cardAccent: "border-l-4 border-l-indigo-600"
+      };
+
+      eventsDataStore[newId] = {
+        subEvents: [
+          { id: 1, name: "Main Ceremony", date: "2027-03-15", time: "06:00 PM", venue: city + " Grounds", daysBefore: 2, scheduledDate: "2027-03-13" },
+          { id: 2, name: "Gala Reception", date: "2027-03-15", time: "08:30 PM", venue: city + " Ballroom", daysBefore: 1, scheduledDate: "2027-03-14" }
+        ],
+        guests: [
+          { id: 1, name: "Verma Family", phone: "+91 98111 00011", invitedSubEvents: ["Main Ceremony", "Gala Reception"], confirmedSubEvents: ["Main Ceremony", "Gala Reception"], invitedQuota: 4, status: "Confirmed", adults: 2, kids: 1, waStatus: "Read", rsvpSource: "WhatsApp Web Portal", rsvpTime: "Just now" },
+          { id: 2, name: "Dr. K. Anand", phone: "+91 98222 00022", invitedSubEvents: ["Gala Reception"], confirmedSubEvents: ["Gala Reception"], invitedQuota: 2, status: "Confirmed", adults: 2, kids: 0, waStatus: "Read", rsvpSource: "WhatsApp Web Portal", rsvpTime: "Just now" },
+          { id: 3, name: "Khanna Household", phone: "+91 98333 00033", invitedSubEvents: ["Main Ceremony", "Gala Reception"], confirmedSubEvents: [], invitedQuota: 4, status: "Pending", adults: 0, kids: 0, waStatus: "Delivered", rsvpSource: "Invite Sent (Awaiting)", rsvpTime: "-" }
+        ]
+      };
+
+      eventsList.push(newEvt);
+
+      closeCreateMainEventModal();
+      renderEventsDirectory();
+      renderCalendarTimeline();
+      selectAndOpenEventWorkspace(newId);
+    }
+
+    // Sub-Event Reports & Live Reminders
+    function renderSubEventReports() {
+      const container = document.getElementById("sub-event-report-cards");
+      if (!container) return;
+      container.innerHTML = "";
+
+      const badge = document.getElementById("sub-events-count-badge");
+      if (badge) badge.innerText = `${subEvents.length} Ceremonies`;
+      renderEventReminderSchedule();
+
+      subEvents.forEach(se => {
+        const invitedGuests = guests.filter(g => g.invitedSubEvents.includes(se.name));
+        const totalInvitedQuota = invitedGuests.reduce((sum, g) => sum + g.invitedQuota, 0);
+
+        const confirmedGuests = guests.filter(g => g.confirmedSubEvents && g.confirmedSubEvents.includes(se.name));
+        const actualConfirmedAttendees = confirmedGuests.reduce((sum, g) => sum + g.adults + g.kids, 0);
+        const confirmedAdults = confirmedGuests.reduce((sum, g) => sum + g.adults, 0);
+        const confirmedKids = confirmedGuests.reduce((sum, g) => sum + g.kids, 0);
+        const attendanceRate = totalInvitedQuota > 0 ? Math.round((actualConfirmedAttendees / totalInvitedQuota) * 100) : 0;
+
+        const card = document.createElement("div");
+        card.className = "bg-[var(--card)] border border-[var(--border)] rounded-2xl p-4 flex flex-col justify-between shadow-xs";
+        
+        card.innerHTML = `
+          <div>
+            <div class="flex items-start justify-between gap-1 mb-1">
+              <h4 class="font-bold text-sm text-[var(--foreground)]">${se.name}</h4>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 font-semibold border border-indigo-500/20">
+                ${se.date}
+              </span>
+            </div>
+            <p class="text-[11px] text-[var(--muted-foreground)] mb-3 flex items-center gap-1">
+              <svg class="icon-svg w-3 h-3 shrink-0" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span class="truncate">${se.venue}</span>
+              <span>•</span>
+              <span class="font-medium shrink-0">${se.time}</span>
+            </p>
+
+            <div class="grid grid-cols-2 gap-2 text-xs mb-2.5">
+              <div class="bg-[var(--background)] p-2 rounded-xl border border-[var(--border)]">
+                <span class="text-[10px] text-[var(--muted-foreground)] block">Invited Quota</span>
+                <span class="text-xs font-bold text-[var(--foreground)]">${totalInvitedQuota} Heads</span>
+                <span class="text-[10px] text-[var(--muted-foreground)] block">${invitedGuests.length} Families</span>
+              </div>
+              <div class="bg-emerald-500/5 p-2 rounded-xl border border-emerald-500/20">
+                <span class="text-[10px] text-emerald-700 dark:text-emerald-400 block font-medium">Actual Confirmed</span>
+                <span class="text-xs font-bold text-emerald-600">${actualConfirmedAttendees} Heads</span>
+                <span class="text-[10px] text-emerald-700 dark:text-emerald-400 block font-semibold">${confirmedAdults}A, ${confirmedKids}K</span>
+              </div>
+            </div>
+
+            <!-- Attendance Rate & Progress Bar -->
+            <div class="mb-3 px-0.5">
+              <div class="flex items-center justify-between text-[10px] text-[var(--muted-foreground)] mb-1">
+                <span>Ceremony Headcount Rate:</span>
+                <span class="font-bold text-emerald-600">${attendanceRate}%</span>
+              </div>
+              <div class="w-full bg-[var(--background)] border border-[var(--border)] h-1.5 rounded-full overflow-hidden">
+                <div class="bg-emerald-500 h-1.5 rounded-full transition-all duration-300" style="width: ${attendanceRate}%"></div>
+              </div>
+            </div>
+
+            <!-- Interactive Reminder Schedule Box with Days Before Input -->
+            <div class="p-2.5 bg-[var(--background)] rounded-xl border border-[var(--border)] mb-3">
+              <div class="flex items-center justify-between text-xs mb-1.5">
+                <span class="text-[11px] text-[var(--muted-foreground)] font-medium">WhatsApp Reminder:</span>
+                <div class="flex items-center gap-1.5">
+                  <input type="number" min="0" max="30" value="${se.daysBefore}" 
+                         onchange="updateInlineDaysBefore(${se.id}, this.value)" 
+                         class="w-12 bg-[var(--card)] border border-[var(--border)] rounded-md px-1.5 py-0.5 text-center text-xs font-bold text-[var(--foreground)] focus:outline-none focus:border-indigo-500">
+                  <span class="text-[10px] text-[var(--muted-foreground)]">days before</span>
+                </div>
+              </div>
+              <div class="flex items-center justify-between text-[11px] pt-1.5 border-t border-[var(--border)]">
+                <span class="text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                  <svg class="icon-svg w-3 h-3 text-emerald-600" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  Send Date: <strong>${se.scheduledDate}</strong>
+                </span>
+                <button onclick="testTriggerReminder(${se.id})" class="text-[10px] px-2 py-0.5 rounded bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 font-semibold border border-indigo-200 dark:border-indigo-800 transition">
+                  Test Msg
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <button onclick="downloadSubEventRoster('${se.name}')" class="w-full text-xs py-1.5 rounded-lg border border-[var(--border)] hover:bg-[var(--background)] text-[var(--foreground)] font-medium flex items-center justify-center gap-1.5 transition">
+            <svg class="icon-svg w-3.5 h-3.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+            <span>Export Ceremony Headcount</span>
+          </button>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    // Guest Roster Table
+    function renderTable() {
+      const tbody = document.getElementById("guest-table-body");
+      if (!tbody) return;
+      tbody.innerHTML = "";
+
+      const searchInput = document.getElementById("guest-search-input");
+      const searchVal = (searchInput ? searchInput.value : "").toLowerCase().trim();
+
+      // Update counters in RSVP filter pills
+      const countAll = guests.length;
+      const countConfirmed = guests.filter(g => g.status === 'Confirmed').length;
+      const countPending = guests.filter(g => g.status === 'Pending').length;
+      const countDeclined = guests.filter(g => g.status === 'Declined').length;
+
+      if (document.getElementById("count-all-rsvp")) document.getElementById("count-all-rsvp").innerText = countAll;
+      if (document.getElementById("count-confirmed-rsvp")) document.getElementById("count-confirmed-rsvp").innerText = countConfirmed;
+      if (document.getElementById("count-pending-rsvp")) document.getElementById("count-pending-rsvp").innerText = countPending;
+      if (document.getElementById("count-declined-rsvp")) document.getElementById("count-declined-rsvp").innerText = countDeclined;
+      if (document.getElementById("tab-badge-roster-count")) document.getElementById("tab-badge-roster-count").innerText = `${countConfirmed}/${countAll} Confirmed`;
+
+      let filtered = guests;
+      if (rsvpStatusFilter !== 'all') {
+        filtered = filtered.filter(g => g.status.toLowerCase() === rsvpStatusFilter.toLowerCase());
+      }
+      if (searchVal) {
+        filtered = filtered.filter(g => 
+          g.name.toLowerCase().includes(searchVal) || 
+          g.phone.includes(searchVal) || 
+          (g.rsvpSource && g.rsvpSource.toLowerCase().includes(searchVal)) ||
+          (g.note && g.note.toLowerCase().includes(searchVal))
+        );
+      }
+
+      if (filtered.length === 0) {
+        const emptyTr = document.createElement("tr");
+        emptyTr.innerHTML = `
+          <td colspan="7" class="p-8 text-center text-xs text-[var(--muted-foreground)]">
+            <svg class="icon-svg w-6 h-6 mx-auto mb-2 text-slate-400" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <p class="font-medium">No guests match the current filter (${rsvpStatusFilter}).</p>
+            <button onclick="setRsvpFilter('all')" class="mt-2 text-indigo-600 font-semibold underline text-xs">Clear RSVP Filter</button>
+          </td>
+        `;
+        tbody.appendChild(emptyTr);
+        return;
+      }
+
+      filtered.forEach(g => {
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-[var(--card-subtle)] transition cursor-pointer";
+        
+        const actualAttendees = (g.status === "Confirmed") ? (g.adults + g.kids) : 0;
+
+        let statusBadge = "";
+        let actualBadge = "";
+
+        if (g.status === "Confirmed") {
+          statusBadge = `
+            <div>
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Confirmed</span>
+              <span class="text-[9px] text-[var(--muted-foreground)] block mt-0.5">${g.rsvpSource || 'WhatsApp Web'}</span>
+            </div>
+          `;
+          actualBadge = `
+            <div class="text-center">
+              <span class="text-xs font-bold text-emerald-600">${actualAttendees} Actual</span>
+              <span class="text-[10px] text-[var(--muted-foreground)] block">(${g.adults} Adults, ${g.kids} Kids)</span>
+            </div>
+          `;
+        } else if (g.status === "Declined") {
+          statusBadge = `
+            <div>
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Declined</span>
+              <span class="text-[9px] text-rose-600 dark:text-rose-400 block mt-0.5 truncate max-w-[120px]" title="${g.note || 'Regret Cannot'}">${g.note || 'Regret'}</span>
+            </div>
+          `;
+          actualBadge = `<div class="text-center"><span class="text-xs font-bold text-rose-600">0 Actual</span><span class="text-[9px] text-[var(--muted-foreground)] block">${g.invitedQuota} freed</span></div>`;
+        } else {
+          statusBadge = `
+            <div>
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Pending</span>
+              <span class="text-[9px] text-[var(--muted-foreground)] block mt-0.5">Invite Delivered</span>
+            </div>
+          `;
+          actualBadge = `<span class="text-xs text-amber-700 dark:text-amber-400 font-medium">Awaiting RSVP</span>`;
+        }
+
+        let waIcon = `<span class="text-blue-500 font-bold" title="Read">✓✓</span>`;
+        if (g.waStatus === "Delivered") waIcon = `<span class="text-slate-400" title="Delivered">✓✓</span>`;
+        if (g.waStatus === "Sent") waIcon = `<span class="text-slate-400" title="Sent">✓</span>`;
+
+        const subEventPills = g.invitedSubEvents.map(se => {
+          const isConfirmed = g.confirmedSubEvents && g.confirmedSubEvents.includes(se);
+          return `<span class="px-1.5 py-0.5 rounded text-[9px] border ${isConfirmed ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20 font-bold' : 'bg-[var(--background)] text-[var(--muted-foreground)] border-[var(--border)]'}">${se}</span>`;
+        }).join(" ");
+
+        tr.innerHTML = `
+          <td class="p-3">
+            <div class="font-semibold text-[var(--foreground)] flex items-center gap-1.5">
+              ${g.name}
+              ${currentSimulatedGuest && g.id === currentSimulatedGuest.id ? '<span class="text-[9px] px-1.5 py-0.2 bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 rounded font-bold">Simulating</span>' : ''}
+            </div>
+            <div class="text-[10px] text-[var(--muted-foreground)] mt-0.5">
+              ${g.rsvpTime || 'Recently'}
+            </div>
+          </td>
+          <td class="p-3 text-[var(--muted-foreground)] font-mono text-[11px]">${g.phone} ${waIcon}</td>
+          <td class="p-3"><div class="flex flex-wrap gap-1">${subEventPills}</div></td>
+          <td class="p-3">${statusBadge}</td>
+          <td class="p-3 text-center">
+            <span class="text-xs font-bold bg-[var(--background)] border border-[var(--border)] px-2 py-0.5 rounded-md text-[var(--foreground)]">
+              ${g.invitedQuota} Seats
+            </span>
+          </td>
+          <td class="p-3">${actualBadge}</td>
+          <td class="p-3 text-right">
+            <div class="flex items-center justify-end gap-1" onclick="event.stopPropagation();">
+              <button onclick="openEditFamilyModal(${g.id})" class="text-[11px] px-2 py-1 rounded-md bg-[var(--background)] hover:bg-[var(--card)] border border-[var(--border)] text-indigo-600 font-medium transition" title="Edit Family & Headcounts">
+                Edit
+              </button>
+              <button onclick="loadGuestToPhoneById(${g.id})" class="text-[11px] px-2 py-1 rounded-md bg-[var(--background)] hover:bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)] font-medium transition" title="Test on Mobile Phone">
+                Test
+              </button>
+              <button onclick="deleteFamily(${g.id})" class="p-1 rounded-md bg-[var(--background)] hover:bg-rose-500/10 border border-[var(--border)] text-rose-500 transition" title="Delete Family">
+                <svg class="icon-svg w-3 h-3" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+              </button>
+            </div>
+          </td>
+        `;
+
+        tr.onclick = () => loadGuestToPhoneById(g.id);
+        tbody.appendChild(tr);
+      });
+    }
+
+    function updateMetrics() {
+      const totalAllocatedQuota = guests.reduce((sum, g) => sum + g.invitedQuota, 0);
+      const confirmedGuests = guests.filter(g => g.status === 'Confirmed');
+      const totalActualConfirmedHeads = confirmedGuests.reduce((sum, g) => sum + g.adults + g.kids, 0);
+      const totalAdults = confirmedGuests.reduce((sum, g) => sum + g.adults, 0);
+      const totalKids = confirmedGuests.reduce((sum, g) => sum + g.kids, 0);
+      const pendingGuests = guests.filter(g => g.status === 'Pending');
+      const totalPendingQuota = pendingGuests.reduce((sum, g) => sum + g.invitedQuota, 0);
+      const declinedGuests = guests.filter(g => g.status === 'Declined');
+      const totalFreedSeats = declinedGuests.reduce((sum, g) => sum + g.invitedQuota, 0);
+
+      document.getElementById("stat-total-allocated").innerText = `${totalAllocatedQuota} Heads`;
+      document.getElementById("stat-confirmed-heads").innerText = `${totalActualConfirmedHeads} Heads`;
+      document.getElementById("stat-adult-kid-split").innerText = `${totalAdults} Adults, ${totalKids} Kids`;
+      document.getElementById("stat-pending-heads").innerText = `${totalPendingQuota} Heads`;
+      document.getElementById("stat-freed-seats").innerText = `${totalFreedSeats} Seats`;
+
+      renderSubEventReports();
+    }
+
+    function openAddFamilyModal() {
+      editingGuestId = null;
+      document.getElementById("modal-family-title").innerText = "Add New Family";
+      document.getElementById("input-fam-name").value = "";
+      document.getElementById("input-fam-phone").value = "+91 ";
+      document.getElementById("input-fam-quota").value = "4";
+      document.getElementById("select-fam-status").value = "Pending";
+      document.getElementById("input-fam-adults").value = "2";
+      document.getElementById("input-fam-kids").value = "0";
+
+      populateModalSubEventCheckboxes([]);
+      toggleModalActualAttendeesFields("Pending");
+
+      document.getElementById("modal-family").classList.remove("hidden");
+    }
+
+    function openEditFamilyModal(id) {
+      editingGuestId = id;
+      const g = guests.find(item => item.id === id);
+      if (!g) return;
+
+      document.getElementById("modal-family-title").innerText = `Edit: ${g.name}`;
+      document.getElementById("input-fam-name").value = g.name;
+      document.getElementById("input-fam-phone").value = g.phone;
+      document.getElementById("input-fam-quota").value = g.invitedQuota;
+      document.getElementById("select-fam-status").value = g.status;
+      document.getElementById("input-fam-adults").value = g.adults || 0;
+      document.getElementById("input-fam-kids").value = g.kids || 0;
+
+      populateModalSubEventCheckboxes(g.invitedSubEvents);
+      toggleModalActualAttendeesFields(g.status);
+
+      document.getElementById("modal-family").classList.remove("hidden");
+    }
+
+    function closeFamilyModal() {
+      document.getElementById("modal-family").classList.add("hidden");
+      editingGuestId = null;
+    }
+
+    function populateModalSubEventCheckboxes(selectedNames) {
+      const container = document.getElementById("modal-fam-subevents-list");
+      container.innerHTML = "";
+
+      subEvents.forEach(se => {
+        const isChecked = selectedNames.length === 0 || selectedNames.includes(se.name);
+        const div = document.createElement("div");
+        div.className = "flex items-center gap-2 p-1.5 rounded-lg bg-[var(--background)] border border-[var(--border)]";
+        div.innerHTML = `
+          <input type="checkbox" id="mod-se-${se.id}" value="${se.name}" ${isChecked ? 'checked' : ''} class="w-4 h-4 accent-indigo-600 rounded cursor-pointer">
+          <label for="mod-se-${se.id}" class="text-xs cursor-pointer text-[var(--foreground)] truncate">${se.name}</label>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function toggleModalActualAttendeesFields(status) {
+      const container = document.getElementById("modal-fam-actual-fields");
+      if (status === 'Confirmed') container.classList.remove('hidden');
+      else container.classList.add('hidden');
+    }
+
+    function saveFamily() {
+      const name = document.getElementById("input-fam-name").value.trim();
+      const phone = document.getElementById("input-fam-phone").value.trim();
+      const quota = parseInt(document.getElementById("input-fam-quota").value) || 1;
+      const status = document.getElementById("select-fam-status").value;
+
+      let adults = 0, kids = 0;
+      if (status === 'Confirmed') {
+        adults = parseInt(document.getElementById("input-fam-adults").value) || 0;
+        kids = parseInt(document.getElementById("input-fam-kids").value) || 0;
+      }
+
+      if (!name) {
+        alert("Please enter a Family Name!");
+        return;
+      }
+
+      let invitedSe = [];
+      subEvents.forEach(se => {
+        const chk = document.getElementById(`mod-se-${se.id}`);
+        if (chk && chk.checked) invitedSe.push(se.name);
+      });
+
+      if (invitedSe.length === 0) {
+        alert("Please select at least one ceremony for this family!");
+        return;
+      }
+
+      if (editingGuestId) {
+        const g = guests.find(item => item.id === editingGuestId);
+        if (g) {
+          g.name = name;
+          g.phone = phone;
+          g.invitedQuota = quota;
+          g.invitedSubEvents = invitedSe;
+          g.status = status;
+          g.adults = adults;
+          g.kids = kids;
+          g.confirmedSubEvents = status === 'Confirmed' ? [...invitedSe] : [];
+          if (currentSimulatedGuest.id === g.id) loadGuestToPhone(g);
+        }
+      } else {
+        const newId = guests.length > 0 ? Math.max(...guests.map(g => g.id)) + 1 : 1;
+        const newGuest = {
+          id: newId,
+          name: name,
+          phone: phone,
+          invitedSubEvents: invitedSe,
+          confirmedSubEvents: status === 'Confirmed' ? [...invitedSe] : [],
+          invitedQuota: quota,
+          status: status,
+          adults: adults,
+          kids: kids,
+          waStatus: "Sent",
+          rsvpSource: "Host Admin Entry",
+          rsvpTime: "Just now"
+        };
+        guests.unshift(newGuest);
+        loadGuestToPhone(newGuest);
+      }
+
+      if (eventsDataStore[activeEventId]) {
+        eventsDataStore[activeEventId].guests = guests;
+      }
+
+      closeFamilyModal();
+      renderTable();
+      updateMetrics();
+      renderSubEventReports();
+      renderEventsDirectory();
+    }
+
+    function deleteFamily(id) {
+      const g = guests.find(item => item.id === id);
+      if (!g) return;
+
+      if (confirm(`Remove '${g.name}' from the guest roster?`)) {
+        guests = guests.filter(item => item.id !== id);
+        if (eventsDataStore[activeEventId]) {
+          eventsDataStore[activeEventId].guests = guests;
+        }
+        if (currentSimulatedGuest && currentSimulatedGuest.id === id && guests.length > 0) {
+          loadGuestToPhone(guests[0]);
+        }
+        renderTable();
+        updateMetrics();
+        renderSubEventReports();
+        renderEventsDirectory();
+      }
+    }
+
+    function renderSubEventsScheduler() {
+      // Inline controls are directly managed within renderSubEventReports
+    }
+
+    function updateInlineDaysBefore(id, newDays) {
+      const se = subEvents.find(item => item.id === id);
+      if (se) {
+        se.daysBefore = parseInt(newDays) || 0;
+        se.scheduledDate = computeReminderDate(se.date, se.daysBefore);
+        if (eventsDataStore[activeEventId]) {
+          eventsDataStore[activeEventId].subEvents = subEvents;
+        }
+        renderSubEventReports();
+        renderEventsDirectory();
+        renderCalendarTimeline();
+      }
+    }
+
+    function computeReminderDate(baseDateStr, daysBefore) {
+      const d = new Date(baseDateStr);
+      d.setDate(d.getDate() - daysBefore);
+      return d.toISOString().split('T')[0];
+    }
+
+    // ---- Event-level Reminder: X days before the event's first ceremony ----
+    const DEFAULT_EVENT_REMINDER_DAYS = 3;
+
+    function getEventReminderSchedule(eventId) {
+      const store = eventsDataStore[eventId];
+      if (!store) return null;
+      if (store.eventReminderDaysBefore === undefined) store.eventReminderDaysBefore = DEFAULT_EVENT_REMINDER_DAYS;
+      const seDates = (store.subEvents || []).map(se => se.date).filter(Boolean).sort();
+      if (seDates.length === 0) return { daysBefore: store.eventReminderDaysBefore, eventStart: null, sendDate: null };
+      return {
+        daysBefore: store.eventReminderDaysBefore,
+        eventStart: seDates[0],
+        sendDate: computeReminderDate(seDates[0], store.eventReminderDaysBefore)
+      };
+    }
+
+    function renderEventReminderSchedule() {
+      const schedule = getEventReminderSchedule(activeEventId);
+      const input = document.getElementById("input-event-reminder-days");
+      if (input && document.activeElement !== input) input.value = schedule ? schedule.daysBefore : DEFAULT_EVENT_REMINDER_DAYS;
+      const sendLabel = schedule && schedule.sendDate ? formatCeremonyDate(schedule.sendDate) : "No ceremonies yet";
+      document.getElementById("event-reminder-send-date").innerText = sendLabel;
+      document.getElementById("phone-reminder-send-date").innerText = sendLabel;
+    }
+
+    function updateEventReminderDays(value) {
+      const store = eventsDataStore[activeEventId];
+      if (!store) return;
+      const days = parseInt(value, 10);
+      store.eventReminderDaysBefore = isNaN(days) || days < 0 ? 0 : days;
+      renderEventReminderSchedule();
+      renderCalendarTimeline();
+    }
+
+    function loadGuestToPhoneById(id) {
+      const g = guests.find(item => item.id === id);
+      if (g) loadGuestToPhone(g);
+    }
+
+    function loadGuestToPhone(g) {
+      currentSimulatedGuest = g;
+      renderPhoneMessages();
+      document.getElementById("wa-allocated-seats").innerText = `Up to ${g.invitedQuota} Seats`;
+      document.getElementById("rsvp-guest-header").innerText = g.name;
+      document.getElementById("rsvp-quota-display").innerText = `Invited Quota: Up to ${g.invitedQuota} Members`;
+      document.getElementById("rsvp-token-slug").innerText = `${g.name.toLowerCase().replace(/[^a-z]/g, '')}-${g.id}a9f`;
+
+      const waSubContainer = document.getElementById("wa-subevents-list");
+      waSubContainer.innerHTML = g.invitedSubEvents.map(se => `<div>• ${se}</div>`).join("");
+
+      const rsvpSubContainer = document.getElementById("rsvp-subevents-checkboxes");
+      rsvpSubContainer.innerHTML = "";
+
+      g.invitedSubEvents.forEach(se => {
+        const isChecked = g.confirmedSubEvents.includes(se) || g.status !== 'Declined';
+        const div = document.createElement("div");
+        div.className = "flex items-center gap-2 p-1.5 rounded-lg bg-slate-950 border border-slate-800";
+        div.innerHTML = `
+          <input type="checkbox" id="chk-se-${se.replace(/[^a-zA-Z]/g, '')}" value="${se}" ${isChecked ? 'checked' : ''} class="w-4 h-4 accent-indigo-500 rounded cursor-pointer">
+          <label for="chk-se-${se.replace(/[^a-zA-Z]/g, '')}" class="text-xs font-medium cursor-pointer text-slate-200">${se}</label>
+        `;
+        rsvpSubContainer.appendChild(div);
+      });
+
+      const initialAdults = g.adults || Math.min(2, g.invitedQuota);
+      const initialKids = g.kids || 0;
+      document.getElementById("rsvp-adults-val").innerText = initialAdults;
+      document.getElementById("rsvp-kids-val").innerText = initialKids;
+      updateTotalAttendingBadge(initialAdults + initialKids);
+
+      selectRsvpDecision(g.status === 'Declined' ? 'declined' : 'attending');
+      document.getElementById("rsvp-success-banner").classList.add("hidden");
+
+      renderTable();
+    }
+
+    function updateTotalAttendingBadge(total) {
+      document.getElementById("rsvp-total-attending-badge").innerText = `${total} of ${currentSimulatedGuest.invitedQuota} Attending`;
+    }
+
+    // ---- Editable WhatsApp Message Templates (Invite & Reminder) ----
+    const DEFAULT_MESSAGE_TEMPLATES = {
+      invite: "Namaste {guest_name},\n\nWe cordially invite you and your family to celebrate our wedding ceremonies!",
+      reminder: "Namaste {guest_name},\n\nA gentle reminder that *{ceremony}* is coming up on {ceremony_date} at {ceremony_time}.\n\n📍 {venue}\n\nWe look forward to celebrating with you!"
+    };
+
+    const MESSAGE_PLACEHOLDERS = {
+      invite: ["guest_name", "event_title", "seats"],
+      reminder: ["guest_name", "event_title", "seats", "ceremony", "ceremony_date", "ceremony_time", "venue"]
+    };
+
+    let currentPhoneScreen = 'whatsapp';
+
+    function getMessageTemplates() {
+      const store = eventsDataStore[activeEventId];
+      if (!store) return { ...DEFAULT_MESSAGE_TEMPLATES };
+      if (!store.messageTemplates) store.messageTemplates = { ...DEFAULT_MESSAGE_TEMPLATES };
+      return store.messageTemplates;
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+    }
+
+    function formatMessageTemplate(template, values) {
+      return escapeHtml(template)
+        .replace(/\{(\w+)\}/g, (match, key) => key in values ? `<strong class="text-indigo-300">${escapeHtml(values[key])}</strong>` : match)
+        .replace(/\*([^*\n]+)\*/g, '<strong>$1</strong>')
+        .replace(/\n/g, '<br>');
+    }
+
+    // Earliest ceremony (by date) this guest is invited to
+    function getReminderCeremony(g) {
+      const invited = subEvents
+        .filter(se => g.invitedSubEvents.includes(se.name))
+        .sort((a, b) => (a.date || "").localeCompare(b.date || ""));
+      return invited[0] || null;
+    }
+
+    function formatCeremonyDate(dateStr) {
+      if (!dateStr) return "TBA";
+      const d = new Date(`${dateStr}T00:00:00`);
+      return d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    function renderPhoneMessages() {
+      const g = currentSimulatedGuest;
+      if (!g) return;
+      const evt = eventsList.find(e => e.id === activeEventId);
+      const ceremony = getReminderCeremony(g);
+      const templates = getMessageTemplates();
+
+      const values = {
+        guest_name: g.name,
+        event_title: evt ? evt.title : "",
+        seats: g.invitedQuota,
+        ceremony: ceremony ? ceremony.name : "our celebration",
+        ceremony_date: ceremony ? formatCeremonyDate(ceremony.date) : "TBA",
+        ceremony_time: ceremony ? ceremony.time : "TBA",
+        venue: ceremony ? ceremony.venue : (evt ? evt.city : "")
+      };
+
+      document.getElementById("wa-invite-message").innerHTML = formatMessageTemplate(templates.invite, values);
+      document.getElementById("wa-reminder-message").innerHTML = formatMessageTemplate(templates.reminder, values);
+      document.getElementById("reminder-card-ceremony").innerText = values.ceremony;
+      document.getElementById("reminder-card-when").innerText = `${values.ceremony_date} • ${values.ceremony_time}`;
+      renderEventReminderSchedule();
+    }
+
+    function currentTemplateKey() {
+      return currentPhoneScreen === 'reminder' ? 'reminder' : 'invite';
+    }
+
+    // Load the template for the current screen into the editor
+    function syncMessageEditor() {
+      const key = currentTemplateKey();
+      document.getElementById("message-editor-label").innerText = key === 'reminder' ? "Reminder Message" : "Invite Message";
+      document.getElementById("message-editor-input").value = getMessageTemplates()[key];
+      document.getElementById("message-placeholder-chips").innerHTML = MESSAGE_PLACEHOLDERS[key]
+        .map(p => `<button type="button" onclick="insertMessagePlaceholder('{${p}}')" class="px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-600 border border-indigo-500/20 text-[10px] font-mono hover:bg-indigo-500/20 transition">{${p}}</button>`)
+        .join("");
+    }
+
+    function toggleMessageEditor() {
+      const panel = document.getElementById("message-editor-panel");
+      const btn = document.getElementById("btn-edit-message");
+      const isHidden = panel.classList.toggle("hidden");
+      btn.classList.toggle("border-indigo-500", !isHidden);
+      btn.classList.toggle("text-indigo-600", !isHidden);
+      if (!isHidden) {
+        syncMessageEditor();
+        document.getElementById("message-editor-input").focus();
+      }
+    }
+
+    function onMessageTemplateInput(value) {
+      getMessageTemplates()[currentTemplateKey()] = value;
+      renderPhoneMessages();
+    }
+
+    function insertMessagePlaceholder(token) {
+      const input = document.getElementById("message-editor-input");
+      input.focus();
+      input.setRangeText(token, input.selectionStart, input.selectionEnd, 'end');
+      onMessageTemplateInput(input.value);
+    }
+
+    function resetMessageTemplate() {
+      const key = currentTemplateKey();
+      getMessageTemplates()[key] = DEFAULT_MESSAGE_TEMPLATES[key];
+      syncMessageEditor();
+      renderPhoneMessages();
+    }
+
+    function setPhoneScreen(screenName) {
+      currentPhoneScreen = screenName;
+      const screens = {
+        whatsapp: { screen: "screen-whatsapp", tab: "phone-tab-wa", active: "font-bold bg-[var(--background)] text-emerald-600 border-emerald-500/20" },
+        reminder: { screen: "screen-reminder", tab: "phone-tab-reminder", active: "font-bold bg-[var(--background)] text-amber-600 border-amber-500/20" },
+        rsvp: { screen: "screen-rsvp", tab: "phone-tab-rsvp", active: "font-bold bg-[var(--background)] text-indigo-400 border-indigo-500/20" }
+      };
+      const baseTab = "flex-1 whitespace-nowrap px-2 py-1 rounded-md border";
+      const inactiveTab = "font-medium border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]";
+
+      Object.entries(screens).forEach(([name, cfg]) => {
+        const isActive = name === screenName;
+        document.getElementById(cfg.screen).classList.toggle("hidden", !isActive);
+        document.getElementById(cfg.tab).className = `${baseTab} ${isActive ? cfg.active : inactiveTab}`;
+      });
+
+      // Text editing applies to the WhatsApp Invite & Reminder messages only
+      const isMessageScreen = screenName !== 'rsvp';
+      document.getElementById("phone-edit-row").classList.toggle("hidden", !isMessageScreen);
+      document.getElementById("reminder-schedule-row").classList.toggle("hidden", screenName !== 'reminder');
+      if (!isMessageScreen) {
+        document.getElementById("message-editor-panel").classList.add("hidden");
+        const btn = document.getElementById("btn-edit-message");
+        btn.classList.remove("border-indigo-500", "text-indigo-600");
+      } else {
+        syncMessageEditor();
+      }
+    }
+
+    function selectRsvpDecision(decision) {
+      guestDecision = decision;
+      const btnAttending = document.getElementById("btn-choice-attending");
+      const btnDeclined = document.getElementById("btn-choice-declined");
+      const fields = document.getElementById("rsvp-attending-fields");
+
+      if (decision === 'attending') {
+        btnAttending.className = "py-2 rounded-xl border border-emerald-500 bg-emerald-500/20 text-emerald-400 text-xs font-bold flex items-center justify-center gap-1";
+        btnDeclined.className = "py-2 rounded-xl border border-slate-800 bg-slate-900 text-slate-400 text-xs font-medium flex items-center justify-center gap-1";
+        fields.classList.remove("hidden");
+      } else {
+        btnDeclined.className = "py-2 rounded-xl border border-rose-500 bg-rose-500/20 text-rose-400 text-xs font-bold flex items-center justify-center gap-1";
+        btnAttending.className = "py-2 rounded-xl border border-slate-800 bg-slate-900 text-slate-400 text-xs font-medium flex items-center justify-center gap-1";
+        fields.classList.add("hidden");
+      }
+    }
+
+    function adjustHeadcount(type, change) {
+      const el = document.getElementById(type === 'adults' ? 'rsvp-adults-val' : 'rsvp-kids-val');
+      let val = parseInt(el.innerText) + change;
+      if (val < 0) val = 0;
+      if (type === 'adults' && val < 1 && guestDecision === 'attending') val = 1;
+      
+      const otherVal = parseInt(document.getElementById(type === 'adults' ? 'rsvp-kids-val' : 'rsvp-adults-val').innerText);
+      
+      if (val + otherVal > currentSimulatedGuest.invitedQuota) {
+        alert(`Your invited family quota is capped at ${currentSimulatedGuest.invitedQuota} members! Please contact the host for additional seats.`);
+        return;
+      }
+      
+      el.innerText = val;
+      updateTotalAttendingBadge(val + otherVal);
+    }
+
+    function submitGuestRsvp() {
+      const isAttending = (guestDecision === 'attending');
+      const adults = isAttending ? parseInt(document.getElementById("rsvp-adults-val").innerText) : 0;
+      const kids = isAttending ? parseInt(document.getElementById("rsvp-kids-val").innerText) : 0;
+
+      let selectedSubEvents = [];
+      if (isAttending) {
+        currentSimulatedGuest.invitedSubEvents.forEach(se => {
+          const chk = document.getElementById(`chk-se-${se.replace(/[^a-zA-Z]/g, '')}`);
+          if (chk && chk.checked) selectedSubEvents.push(se);
+        });
+      }
+
+      currentSimulatedGuest.status = isAttending ? "Confirmed" : "Declined";
+      currentSimulatedGuest.confirmedSubEvents = selectedSubEvents;
+      currentSimulatedGuest.adults = adults;
+      currentSimulatedGuest.kids = kids;
+      currentSimulatedGuest.waStatus = "Read";
+      currentSimulatedGuest.rsvpSource = "WhatsApp Web Portal";
+      currentSimulatedGuest.rsvpTime = "Just now (Live Sync)";
+
+      document.getElementById("rsvp-success-banner").classList.remove("hidden");
+
+      if (eventsDataStore[activeEventId]) {
+        eventsDataStore[activeEventId].guests = guests;
+      }
+
+      renderTable();
+      updateMetrics();
+      renderSubEventReports();
+      renderEventsDirectory();
+    }
+
+    function openCreateSubEventModal() {
+      document.getElementById("modal-subevent").classList.remove("hidden");
+      calculateModalReminderDate();
+    }
+
+    function closeCreateSubEventModal() {
+      document.getElementById("modal-subevent").classList.add("hidden");
+    }
+
+    function calculateModalReminderDate() {
+      const eventDate = document.getElementById("input-se-date").value || "2026-12-12";
+      const days = parseInt(document.getElementById("input-se-reminder-days").value) || 0;
+      const calculatedDate = computeReminderDate(eventDate, days);
+      document.getElementById("modal-calculated-date").innerText = `${calculatedDate} (at 10:00 AM)`;
+    }
+
+    function saveNewSubEvent() {
+      const name = document.getElementById("input-se-name").value.trim();
+      const date = document.getElementById("input-se-date").value;
+      const time = document.getElementById("input-se-time").value.trim();
+      const venue = document.getElementById("input-se-venue").value.trim() || "Palace Grounds";
+      const days = parseInt(document.getElementById("input-se-reminder-days").value) || 0;
+
+      if (!name) {
+        alert("Please enter a Sub-Event Name!");
+        return;
+      }
+
+      const newId = subEvents.length + 1;
+      const scheduledDate = computeReminderDate(date, days);
+
+      subEvents.push({
+        id: newId,
+        name: name,
+        date: date,
+        time: time,
+        venue: venue,
+        daysBefore: days,
+        scheduledDate: scheduledDate
+      });
+
+      guests.forEach(g => {
+        if (!g.invitedSubEvents.includes(name)) {
+          g.invitedSubEvents.push(name);
+        }
+      });
+
+      if (eventsDataStore[activeEventId]) {
+        eventsDataStore[activeEventId].subEvents = subEvents;
+        eventsDataStore[activeEventId].guests = guests;
+      }
+
+      closeCreateSubEventModal();
+      renderSubEventReports();
+      renderTable();
+      updateMetrics();
+      renderEventsDirectory();
+      renderCalendarTimeline();
+    }
+
+    function downloadSubEventRoster(eventName) {
+      const confirmed = guests.filter(g => g.confirmedSubEvents && g.confirmedSubEvents.includes(eventName));
+      let report = `=== ${eventName.toUpperCase()} ATTENDANCE REPORT ===\n`;
+      report += `Confirmed Households: ${confirmed.length}\n`;
+      report += `Total Actual Attendees: ${confirmed.reduce((s, g) => s + g.adults + g.kids, 0)}\n\n`;
+      confirmed.forEach((g, idx) => {
+        report += `${idx + 1}. ${g.name} (${g.phone}) -> ${g.adults + g.kids} Actual (${g.adults} Adults, ${g.kids} Kids)\n`;
+      });
+      alert(report + "\nReady to export as Excel / PDF!");
+    }
+
+    function downloadAllEventsReport() {
+      let fullReport = "=== CONSOLIDATED EVENT-WISE HEADCOUNT REPORT ===\n";
+      subEvents.forEach(se => {
+        const invited = guests.filter(g => g.invitedSubEvents.includes(se.name));
+        const totalQuota = invited.reduce((sum, g) => sum + g.invitedQuota, 0);
+        const confirmed = guests.filter(g => g.confirmedSubEvents && g.confirmedSubEvents.includes(se.name));
+        const actual = confirmed.reduce((s, g) => s + g.adults + g.kids, 0);
+        
+        fullReport += `\n[ ${se.name} | ${se.date} ]\n`;
+        fullReport += `Invited Quota: ${totalQuota} Heads | Actual Confirmed: ${actual} Heads\n`;
+      });
+      alert(fullReport + "\nReport generated successfully!");
+    }
+
+    function testTriggerReminder(subEventId) {
+      const se = subEvents.find(item => item.id === subEventId);
+      if (se) {
+        alert(`Reminder Simulated for ${se.name}!\n\nTarget Date: ${se.scheduledDate} (${se.daysBefore} days prior).\nWhatsApp Message: "Reminder: ${se.name} begins on ${se.date} at ${se.time} at ${se.venue}. Click for Google Map directions."\nBilled as Meta Utility category (~₹0.11/each).`);
+      }
+    }
+
+    function triggerScheduledReminders() {
+      alert("Automated Cron Worker Executed: Reminders scheduled for today's date dispatched to confirmed guests via Meta WhatsApp Utility API.");
+    }
+
+    function triggerBatchInvites() {
+      const btn = document.getElementById("btn-broadcast-invites");
+      btn.innerText = "Dispatching...";
+      btn.disabled = true;
+
+      setTimeout(() => {
+        guests.forEach(g => { g.waStatus = "Delivered"; });
+        btn.innerHTML = "<span>All Invites Sent</span>";
+        renderTable();
+        alert("Success: Digital Invitations dispatched via Meta WhatsApp Cloud API.");
+        setTimeout(() => {
+          btn.innerHTML = `<svg class="icon-svg w-3.5 h-3.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg><span>Dispatch Invites</span>`;
+          btn.disabled = false;
+        }, 2000);
+      }, 800);
+    }
+
+    function simulateCsvImport() {
+      const nextId = guests.length > 0 ? Math.max(...guests.map(g => g.id)) + 1 : 101;
+      const seNames = subEvents.map(s => s.name);
+      const newGuests = [
+        { id: nextId, name: "Khandelwal Family", phone: "+91 98119 55667", invitedSubEvents: [...seNames], confirmedSubEvents: [seNames[0] || "Main Ceremony"], invitedQuota: 4, status: "Confirmed", adults: 2, kids: 1, waStatus: "Read", rsvpSource: "Excel Import", rsvpTime: "Just now" },
+        { id: nextId + 1, name: "Dr. Arvind Joshi", phone: "+91 99100 88990", invitedSubEvents: [...seNames], confirmedSubEvents: [], invitedQuota: 2, status: "Pending", adults: 0, kids: 0, waStatus: "Sent", rsvpSource: "Excel Import", rsvpTime: "Just now" }
+      ];
+      guests.push(...newGuests);
+      if (eventsDataStore[activeEventId]) {
+        eventsDataStore[activeEventId].guests = guests;
+      }
+      renderTable();
+      updateMetrics();
+      renderEventsDirectory();
+      alert("Successfully imported 2 additional families (6 Allocated Seats) from 'Wedding_Guest_List_Final.xlsx'.");
+    }
+
+    function updateCalculator(val) {
+      document.getElementById("slider-guest-val").innerText = `${val} Households`;
+      const waCost = val * 0.89;
+      const printCost = val * 200;
+      const savings = printCost - waCost;
+
+      document.getElementById("calc-wa-cost").innerText = `₹${waCost.toFixed(2)}`;
+      document.getElementById("calc-print-cost").innerText = `₹${printCost.toLocaleString('en-IN')}.00`;
+      document.getElementById("calc-savings").innerText = `₹${savings.toLocaleString('en-IN')}.00`;
+    }
+
+    function switchHostTab(tabName) {
+      ['reports', 'roster', 'scheduler', 'pricing'].forEach(t => {
+        const tabEl = document.getElementById(`host-tab-${t}`);
+        const btnEl = document.getElementById(`tab-btn-${t}`);
+        if (t === tabName) {
+          tabEl.classList.remove('hidden');
+          btnEl.className = "px-3 py-1.5 rounded-lg font-bold bg-[var(--card)] text-[var(--foreground)] border border-[var(--border)] shadow-xs flex items-center gap-1.5";
+        } else {
+          tabEl.classList.add('hidden');
+          btnEl.className = "px-3 py-1.5 rounded-lg font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] flex items-center gap-1.5";
+        }
+      });
+    }
+
+    function setEventDetailTab(tab) {
+      ['subevents', 'guests', 'savings'].forEach(t => {
+        const panelEl = document.getElementById(`event-tab-${t}`);
+        const btnEl = document.getElementById(`event-tab-btn-${t}`);
+        if (t === tab) {
+          panelEl.classList.remove('hidden');
+          btnEl.className = "flex-1 whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--card)] text-[var(--foreground)] shadow-xs transition";
+        } else {
+          panelEl.classList.add('hidden');
+          btnEl.className = "flex-1 whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition";
+        }
+      });
+    }
+
+    function setViewMode(mode) {
+      const hostPanel = document.getElementById("host-panel");
+      const phonePanel = document.getElementById("phone-panel");
+      const btnSplit = document.getElementById("btn-split");
+      const btnHost = document.getElementById("btn-host");
+      const btnPhone = document.getElementById("btn-phone");
+
+      [btnSplit, btnHost, btnPhone].forEach(b => {
+        b.className = "px-3 py-1.5 rounded-lg text-xs font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)]";
+      });
+
+      if (mode === 'split') {
+        hostPanel.classList.remove("hidden");
+        phonePanel.classList.remove("hidden");
+        hostPanel.className = "lg:col-span-7 flex flex-col gap-6";
+        phonePanel.className = "lg:col-span-5 flex flex-col items-center";
+        btnSplit.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--card)] text-[var(--foreground)] shadow-xs";
+      } else if (mode === 'host') {
+        hostPanel.classList.remove("hidden");
+        phonePanel.classList.add("hidden");
+        hostPanel.className = "lg:col-span-12 flex flex-col gap-6";
+        btnHost.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--card)] text-[var(--foreground)] shadow-xs";
+      } else if (mode === 'phone') {
+        hostPanel.classList.add("hidden");
+        phonePanel.classList.remove("hidden");
+        phonePanel.className = "lg:col-span-12 flex flex-col items-center";
+        btnPhone.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--card)] text-[var(--foreground)] shadow-xs";
+      }
+    }
+
+    function resetDemoData() {
+      location.reload();
+    }
+
+    // ================= INITIALIZATION LIFECYCLE =================
+    function initializeApp() {
+      initTheme();
+      syncActiveEventData(activeEventId);
+      renderEventsDirectory();
+      renderSubEventReports();
+      renderTable();
+      updateMetrics();
+      if (guests && guests.length > 0) {
+        loadGuestToPhone(guests[0]);
+      }
+      calculateModalReminderDate();
+      renderCalendarTimeline();
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initializeApp);
+    } else {
+      initializeApp();
+    }
+
+    // Safety fallback to guarantee execution on local file / webview environments
+    setTimeout(initializeApp, 0);
+  </script>
+
+</body>
+</html>
